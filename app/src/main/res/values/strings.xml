@@ -1,0 +1,62 @@
+<resources>
+    <string name="app_name">HUMDET</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNrNWdrMmR4bjAxcnkzZ2xjd3Y1MnEzODAifQ.USkRw_10q8eKJiTQFXEFPw</string>
+
+
+    <string-array name="app_lang_ru">
+        <item>Скрыть</item>
+        <item>Загрузка</item>
+        <item>Поиск</item>
+        <item>Выбрать фото</item>
+        <item>Процент сходства</item>
+        <item>Поиск на дату</item>
+        <item>На фото лицо не обнаружено, повторите еще раз выбрать фото</item>
+        <item>Результат поиска</item>
+        <item>Сходство</item>
+        <item>Дата съемки</item>
+        <item>Инфо</item>
+        <item>Добавить фото из галереи</item>
+        <item>Загрузить</item>
+        <item>Данные не найдены ,попробуйте понизить процент сходства</item>
+        <item>Фото загружено</item>
+        <item>Ошибка</item>
+    </string-array>
+
+    <string-array name="app_lang_en">
+        <item>Hide</item>
+        <item>Download</item>
+        <item>Search</item>
+        <item>Select image</item>
+        <item>Similarity percent</item>
+        <item>Date search</item>
+        <item>The face was not found in the photo, repeat again select the photo</item>
+        <item>Search results</item>
+        <item>Similarity</item>
+        <item>Photo date</item>
+        <item>Info</item>
+        <item>Add photo from gallery</item>
+        <item>Upload</item>
+        <item>No data found, try lowering the similarity percentage</item>
+        <item>Photo uploaded</item>
+        <item>Error</item>
+    </string-array>
+
+    <!--<string-array name="app_lang_ar">
+        <item>ar_spr</item>
+        <item>ar_down</item>
+        <item>ar_search</item>
+        <item>ar_select_img</item>
+        <item>ar_sim_perc</item>
+        <item>ar_Date search</item>
+        <item>ar_The face was not found in the photo, repeat again select the photo</item>
+        <item>ar_Search results</item>
+        <item>ar_Similarity</item>
+        <item>ar_Photo date</item>
+        <item>ar_Info</item>
+        <item>ar_Add photo from gallery</item>
+        <item>ar_Upload</item>
+        <item>ar_No data found, try lowering the similarity percentage</item>
+        <item>ar_Photo uploaded</item>
+    </string-array>-->
+
+</resources>

@@ -1,0 +1,174 @@
+package com.humdet;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.List;
+
+public class NeuroTrainingActivity extends AppCompatActivity {
+    final int Pic_image=299;
+    private String [] array;
+    Conf conf = new Conf();
+
+    SharedPreferences mSettings;
+    Button buttonUpload = null;
+    private FaceDetector faceDetector;
+
+    BitmapFactory.Options bOptions = null;
+    Bitmap bitmap = null;
+    InputStream input = null;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
+        setContentView(R.layout.activity_neuro_training);
+        bOptions = new BitmapFactory.Options();
+        FaceDetectorOptions options =
+                new FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setContourMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+                        .build();
+
+        faceDetector = FaceDetection.getClient(options);
+
+
+        int lang = mSettings.getInt(conf.getLANG(),0);
+        if(lang==conf.getRU()){
+            array = getResources().getStringArray(R.array.app_lang_ru);
+        }else if(lang==conf.getEN()){
+            array = getResources().getStringArray(R.array.app_lang_en);
+        }/*else if(lang==conf.getAR()){
+            array = getResources().getStringArray(R.array.app_lang_ar);
+        }*/
+        getSupportActionBar().setTitle(array[11]);
+
+        Button button = findViewById(R.id.button);
+        button.setText(array[3]);
+        ImageView imageView = findViewById(R.id.imageView);
+        bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.hum_icon);
+        imageView.setImageBitmap(bitmap);
+        buttonUpload = findViewById(R.id.buttonUpload);
+        buttonUpload.setText(array[12]);
+        buttonUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SaveNewFace saveNewFace = new SaveNewFace();
+                saveNewFace.setLat(0);
+                saveNewFace.setLng(0);
+                saveNewFace.setUsername("username");
+                saveNewFace.setCrop(faceBmp112_112);
+                saveNewFace.setLargePohto(fileToSend);
+                saveNewFace.setTitle(array[14]);
+                saveNewFace.setTitleProgress(array[12]);
+                saveNewFace.setUploadFromActivity(true);
+                saveNewFace.setContext(NeuroTrainingActivity.this);
+                saveNewFace.execute();
+            }
+        });
+
+    }
+
+
+    public void faceDatector(Bitmap bitmap,String imgname){
+        InputImage image = InputImage.fromBitmap(bitmap, 0);
+        try {
+            faceDetector
+                    .process(image)
+                    .addOnSuccessListener(new OnSuccessListener<List<Face>>() {
+                        @Override
+                        public void onSuccess(List<Face> faces) {
+                            if (faces.size() == 0) {
+                                Toast.makeText(NeuroTrainingActivity.this,array[6],Toast.LENGTH_LONG).show();
+                                buttonUpload.setVisibility(View.INVISIBLE);
+                                return;
+                            }
+                            faceDetect(bitmap,faces);
+                        }
+                    }).getResult();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    public void selectImage(View view){
+        Intent intentImage = new Intent(Intent.ACTION_PICK);
+        intentImage.setType("image/*");
+        startActivityForResult(intentImage, Pic_image);
+
+    }
+    File fileToSend = null;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && requestCode == Pic_image) {
+            uriToSend = data.getData();
+            try {
+                input = getContentResolver().openInputStream(uriToSend);
+                //bOptions.inSampleSize = 2;
+                bitmap = BitmapFactory.decodeStream(input, null, bOptions);
+                fileToSend = new File(getRealPathFromUri(uriToSend));
+                ImageView imageView = findViewById(R.id.imageView);
+                imageView.setImageBitmap(bitmap);
+                faceDatector(bitmap,fileToSend.getName());
+            } catch (FileNotFoundException e) {e.printStackTrace();}
+        }
+    }
+    Bitmap faceBmp112_112=null;
+    public void faceDetect(Bitmap bitmap,List<Face> faces){
+        for(Face f : faces){
+            try{
+                Rect rect = f.getBoundingBox();
+                Bitmap orBmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), false);
+                Bitmap faceBmp = Bitmap.createBitmap(orBmp, rect.left, rect.top, rect.width(), rect.height());
+                faceBmp112_112 = Bitmap.createScaledBitmap(faceBmp, 112, 112, false);
+                buttonUpload.setVisibility(View.VISIBLE);
+                //teach(faceBmp112_112,boundingBox,imageName);
+            }catch (Exception e){
+                Toast.makeText(NeuroTrainingActivity.this,array[15],Toast.LENGTH_SHORT).show();
+                buttonUpload.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    Uri uriToSend=null;
+    private String getRealPathFromUri(Uri contentUri){
+        String result=null;
+        Cursor cursor = getContentResolver().query(contentUri,null,null,null,null);
+        if(cursor == null){
+            result = contentUri.getPath();
+        }else{
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
+        }
+        return result;
+    }
+}
