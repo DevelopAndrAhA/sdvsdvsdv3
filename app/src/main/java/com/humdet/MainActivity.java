@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         startService(intent);
         getSupportActionBar().hide();
 
-        int lang = mSettings.getInt(conf.getLANG(),2);
+        int lang = mSettings.getInt(conf.getLANG(),1);
         if(lang==conf.getRU()){
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
