@@ -94,7 +94,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         String [] urls = url.get(position);
 
         Picasso.get()
-                .load(conf.getDomen()+"image?imgname="+urls[0]+".jpg")
+                .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg")
                 .placeholder(R.drawable.ic_baseline_person_24)
                 .error(R.drawable.person_ic)
                 .into(holder.imageView2);
@@ -102,7 +102,7 @@ public class CustomArrayAdapter extends BaseAdapter{
 
         if(urls[1]!=null){
             Picasso.get()
-                    .load(conf.getDomen()+"image?imgname="+urls[1]+".jpg")
+                    .load(conf.getDomen()+"image?imgname="+urls[1]+"_SMALL.jpg")
                     .placeholder(R.drawable.ic_baseline_person_24)
                     .error(R.drawable.person_ic)
                     .into(holder.imageView3);
@@ -111,7 +111,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         }
         if(urls[2]!=null){
             Picasso.get()
-                    .load(conf.getDomen()+"image?imgname="+urls[2]+".jpg")
+                    .load(conf.getDomen()+"image?imgname="+urls[2]+"_SMALL.jpg")
                     .placeholder(R.drawable.ic_baseline_person_24)
                     .error(R.drawable.person_ic)
                     .into(holder.imageView4);

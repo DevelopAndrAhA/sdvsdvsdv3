@@ -712,6 +712,7 @@ public class MyService extends Service {
                 if(!(rec.getDate().equals(dateStr))&&rec.getDate().equals("")){
                     Log.e("SERVICE","FIRST "+rec.getDate()+" "+dateStr);
                     if(crop!=null){
+                        SimilarityClassifier.Recognition finalRec = rec;
                         Thread t = new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -724,7 +725,15 @@ public class MyService extends Service {
                                 saveNewFace.setLat(lat);
                                 saveNewFace.setLng(lng);
                                 saveNewFace.setUsername(currTimestamp+"");
-                                saveNewFace.setCrop(crop);
+                                float mas[][] = (float[][]) finalRec.getExtra();
+                                String masToSend = "";
+                                for(int i=0;i<mas[0].length;i++){
+                                    masToSend += mas[0][i];
+                                    if(i!=mas[0].length-1){
+                                        masToSend = masToSend+",";
+                                    }
+                                }
+                                saveNewFace.setCrop(masToSend);
                             }
                         });
                         t.start();

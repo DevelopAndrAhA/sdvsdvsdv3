@@ -13,6 +13,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -24,6 +25,8 @@ import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
+import com.humdet.tflite.SimilarityClassifier;
+import com.humdet.tflite.TFLiteObjectDetectionAPIModel;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +47,13 @@ public class NeuroTrainingActivity extends AppCompatActivity {
     InputStream input = null;
 
 
+    private SimilarityClassifier detector;
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+    private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
+    private static final int TF_OD_API_INPUT_SIZE = 112;
+    private static final boolean TF_OD_API_IS_QUANTIZED = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +68,18 @@ public class NeuroTrainingActivity extends AppCompatActivity {
                         .build();
 
         faceDetector = FaceDetection.getClient(options);
+
+        try {
+            detector =
+                    TFLiteObjectDetectionAPIModel.create(
+                            getAssets(),
+                            TF_OD_API_MODEL_FILE,
+                            TF_OD_API_LABELS_FILE,
+                            TF_OD_API_INPUT_SIZE,
+                            TF_OD_API_IS_QUANTIZED);
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
 
 
         int lang = mSettings.getInt(conf.getLANG(),0);
@@ -84,7 +106,17 @@ public class NeuroTrainingActivity extends AppCompatActivity {
                 saveNewFace.setLat(0);
                 saveNewFace.setLng(0);
                 saveNewFace.setUsername("username");
-                saveNewFace.setCrop(faceBmp112_112);
+                final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp112_112, true);
+                SimilarityClassifier.Recognition result = resultsAux.get(0);
+                float mas[][] = (float[][]) result.getExtra();
+                String masToSend = "";
+                for(int i=0;i<mas[0].length;i++){
+                    masToSend += mas[0][i];
+                    if(i!=mas[0].length-1){
+                        masToSend = masToSend+",";
+                    }
+                }
+                saveNewFace.setCrop(masToSend);
                 saveNewFace.setLargePohto(fileToSend);
                 saveNewFace.setTitle(array[14]);
                 saveNewFace.setTitleProgress(array[12]);
@@ -97,7 +129,7 @@ public class NeuroTrainingActivity extends AppCompatActivity {
     }
 
 
-    public void faceDatector(Bitmap bitmap,String imgname){
+    public void faceDatector(Bitmap bitmap){
         InputImage image = InputImage.fromBitmap(bitmap, 0);
         try {
             faceDetector
@@ -136,7 +168,7 @@ public class NeuroTrainingActivity extends AppCompatActivity {
                 fileToSend = new File(getRealPathFromUri(uriToSend));
                 ImageView imageView = findViewById(R.id.imageView);
                 imageView.setImageBitmap(bitmap);
-                faceDatector(bitmap,fileToSend.getName());
+                faceDatector(bitmap);
             } catch (FileNotFoundException e) {e.printStackTrace();}
         }
     }

@@ -1,13 +1,6 @@
 package com.humdet;
 
 import androidx.appcompat.app.AppCompatActivity;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -24,6 +17,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -35,9 +29,14 @@ import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.google.mlkit.vision.face.Face;
+import com.humdet.tflite.SimilarityClassifier;
+import com.humdet.tflite.TFLiteObjectDetectionAPIModel;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -63,6 +62,15 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     EditText dateEdit = null;
     TextView percentTxt=null;
     JSONArray jsonArray;
+
+
+
+    private SimilarityClassifier detector;
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+    private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
+    private static final int TF_OD_API_INPUT_SIZE = 112;
+    private static final boolean TF_OD_API_IS_QUANTIZED = false;
+
     @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +91,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         faceDetector = FaceDetection.getClient(options);
 
 
-
         /*Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -91,6 +98,18 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             }
         });
         t.start();*/
+        try {
+            detector =
+                    TFLiteObjectDetectionAPIModel.create(
+                            getAssets(),
+                            TF_OD_API_MODEL_FILE,
+                            TF_OD_API_LABELS_FILE,
+                            TF_OD_API_INPUT_SIZE,
+                            TF_OD_API_IS_QUANTIZED);
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
 
         int lang = mSettings.getInt(conf.getLANG(),0);
         if(lang==conf.getRU()){
@@ -227,6 +246,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         }
     }
     Bitmap faceBmp112_112=null;
+    String masToSend = "";
     public void faceDetect(Bitmap bitmap,List<Face> faces,String imageName){
         for(Face f : faces){
             try{
@@ -235,7 +255,15 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                 Bitmap faceBmp = Bitmap.createBitmap(orBmp, rect.left, rect.top, rect.width(), rect.height());
                 faceBmp112_112 = Bitmap.createScaledBitmap(faceBmp, 112, 112, false);
                 buttonSearch.setVisibility(View.VISIBLE);
-                //teach(faceBmp112_112,boundingBox,imageName);
+                final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp112_112, true);
+                SimilarityClassifier.Recognition result = resultsAux.get(0);
+                float mas[][] = (float[][]) result.getExtra();
+                for(int i=0;i<mas[0].length;i++){
+                    masToSend += mas[0][i];
+                    if(i!=mas[0].length-1){
+                        masToSend = masToSend+",";
+                    }
+                }
             }catch (Exception e){
                 Toast.makeText(SearchActivity.this,array[15],Toast.LENGTH_SHORT).show();
                 buttonSearch.setVisibility(View.INVISIBLE);
@@ -280,21 +308,20 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            faceBmp112_112.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            byte[] cropByteArray = stream.toByteArray();
+            //ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            //faceBmp112_112.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            //byte[] cropByteArray = stream.toByteArray();
             OkHttpClient client = new OkHttpClient();
             try {
-                RequestBody formBody = new MultipartBody.Builder()
-                        .setType(MultipartBody.FORM)
-                        .addFormDataPart("file", "file",
-                                RequestBody.create(MediaType.parse("image/*jpg"), cropByteArray))
-                        .addFormDataPart("percent", percentTxt.getText().toString().split(" ")[0])
-                        .addFormDataPart("inpDate", dateEdit.getText().toString())
+                String url = "search?percent="+percentTxt.getText().toString().split(" ")[0]+"&inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend;
+                Log.e("url",url);
+                com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
+                        .url(conf.getDomen()+ url)
                         .build();
-                Request request = new Request.Builder().url(conf.getDomen() + "search").post(formBody).build();
-                Response response = client.newCall(request).execute();
+                Call call1 = client.newCall(request1);
+                final Response response = call1.execute();
                 String res = response.body().string();
+                Log.e("res",res);
                 try{
                     jsonArray = new JSONArray(res);
                 }catch (Exception e){}

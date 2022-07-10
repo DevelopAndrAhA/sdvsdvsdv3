@@ -22,7 +22,7 @@ import okhttp3.Response;
 public class SaveNewFace {
     static boolean flagShotAndSave = true;
     Conf conf = new Conf();
-    private Bitmap crop;
+    private String crop;
     private File largePohto;
     private String username;
     private double lat;
@@ -56,15 +56,16 @@ public class SaveNewFace {
         protected Void doInBackground(Void... voids) {
             Log.e("flagShotAndSave",flagShotAndSave+"");
             if(flagShotAndSave){
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                crop.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] cropByteArray = stream.toByteArray();
+                //ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                //crop.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                //byte[] cropByteArray = stream.toByteArray();
                 OkHttpClient client = new OkHttpClient();
                 try {
                     RequestBody formBody = new MultipartBody.Builder()
                             .setType(MultipartBody.FORM)
-                            .addFormDataPart("crop", username,
-                                    RequestBody.create(MediaType.parse("image/*jpg"), cropByteArray))
+                            .addFormDataPart("crop", crop)
+                            /*.addFormDataPart("crop", username,
+                                    RequestBody.create(MediaType.parse("image/*jpg"), cropByteArray))*/
                             .addFormDataPart("largePohto", largePohto.getName(),
                                     RequestBody.create(MediaType.parse("text/plain"), largePohto))
                             .addFormDataPart("username", username)
@@ -98,11 +99,11 @@ public class SaveNewFace {
         }
     }
 
-    public Bitmap getCrop() {
+    public String getCrop() {
         return crop;
     }
 
-    public void setCrop(Bitmap crop) {
+    public void setCrop(String crop) {
         this.crop = crop;
     }
 

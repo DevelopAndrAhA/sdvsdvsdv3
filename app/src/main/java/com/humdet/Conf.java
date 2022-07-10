@@ -2,7 +2,7 @@ package com.humdet;
 
 public class Conf {
     private String shared_pref_name = "settings_gz";
-    private String domen = "https://newcluster-4barashkis-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/api/";
+    private String domen = "http://44.203.56.46:8080/api/";
 
 
     private final String LANG = "lang";
