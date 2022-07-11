@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 
@@ -172,6 +173,11 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         AdView adView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);*/
+        ImageButton settings_btn = findViewById(R.id.settings_btn);
+        settings_btn.setOnClickListener(e -> {
+            Intent intent2 = new Intent(this,SettingsActivity.class);
+            startActivity(intent2);
+        });
     }
     AlertDialog alert = null;
     private void showAlertDialog() {
@@ -204,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                if( lang[0] == 0){
                    editor.putInt(conf.getLANG(),1);
                    editor.apply();
-                   Toast.makeText(MainActivity.this, "Язык поменяется при след.запуске приложения", Toast.LENGTH_SHORT).show();
+                   Toast.makeText(MainActivity.this, "В сервисе язык поменяется при след.запуске приложения", Toast.LENGTH_SHORT).show();
                };
                 alert.dismiss();
             }

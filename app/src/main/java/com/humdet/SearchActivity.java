@@ -313,7 +313,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             //byte[] cropByteArray = stream.toByteArray();
             OkHttpClient client = new OkHttpClient();
             try {
-                String url = "search?percent="+percentTxt.getText().toString().split(" ")[0]+"&inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend;
+                String url = "search?percent="+percentTxt.getText().toString().split(" ")[0]+"&inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0";
                 Log.e("url",url);
                 com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
                         .url(conf.getDomen()+ url)

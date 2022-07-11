@@ -88,7 +88,6 @@ import androidx.core.app.ActivityCompat;
 
 
 public class MyService extends Service {
-    SaveNewFace saveNewFace = new SaveNewFace();
     SharedPreferences mSettings;
     SharedPreferences.Editor editor;
 
@@ -148,7 +147,7 @@ public class MyService extends Service {
     private String[] array;
     Conf conf = new Conf();
     double lat=42.877107,lng=74.578294;
-
+    SaveNewFace saveNewFace = null;
     public MyService() {
 
 
@@ -156,6 +155,7 @@ public class MyService extends Service {
 
     @Override
     public void onCreate() {
+        new SaveNewFace(getApplicationContext());
         super.onCreate();
         mSettings = getSharedPreferences(new Conf().getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
@@ -295,6 +295,7 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        onTaskRemoved(intent);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -486,7 +487,7 @@ public class MyService extends Service {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MyService.this, "Saved:", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MyService.this, "Image saved", Toast.LENGTH_SHORT).show();
                     createCameraPreview();
                 }
             };
@@ -710,7 +711,6 @@ public class MyService extends Service {
             if ((rec.getExtra() != null) && (rec.getTitle()==null||rec.getTitle().equals(""))) {
                 detector.register(currTimestamp+"", rec);
                 if(!(rec.getDate().equals(dateStr))&&rec.getDate().equals("")){
-                    Log.e("SERVICE","FIRST "+rec.getDate()+" "+dateStr);
                     if(crop!=null){
                         SimilarityClassifier.Recognition finalRec = rec;
                         Thread t = new Thread(new Runnable() {
@@ -746,7 +746,6 @@ public class MyService extends Service {
                         t2.start();
                     }
                 }else if(rec.getDate().equals("")){
-                    Log.e("SERVICE","SECOND "+rec.getDate()+" "+dateStr);
                     if(crop!=null){
                         Thread t = new Thread(new Runnable() {
                             @Override
@@ -896,6 +895,14 @@ public class MyService extends Service {
         updateResults(currTimestamp, mappedRecognitions,crop);
         return true;
     }
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Intent restartServiceIntent = new Intent(getApplicationContext(),this.getClass());
+        restartServiceIntent.setPackage(getPackageName());
+        startService(restartServiceIntent);
+        super.onTaskRemoved(rootIntent);
+    }
+
     private Matrix createTransform(
             final int srcWidth,
             final int srcHeight,

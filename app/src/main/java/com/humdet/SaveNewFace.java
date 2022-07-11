@@ -2,6 +2,7 @@ package com.humdet;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -20,6 +21,7 @@ import okhttp3.Response;
 
 
 public class SaveNewFace {
+    SharedPreferences mSettings;
     static boolean flagShotAndSave = true;
     Conf conf = new Conf();
     private String crop;
@@ -32,7 +34,8 @@ public class SaveNewFace {
     private Context context;
     private boolean uploadFromActivity;
 
-    public SaveNewFace() {
+    public SaveNewFace(Context context) {
+        mSettings = context.getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
     }
     public void execute(){
         new SendData().execute();
@@ -92,6 +95,9 @@ public class SaveNewFace {
                     dialog.dismiss();
                     if(status==200 && resss.equals("{\"status\":200,\"desc\":\"success\"}")){
                         Toast.makeText(context,title,Toast.LENGTH_SHORT).show();
+                        if(mSettings.getBoolean("save_photo",true)){
+                            largePohto.delete();
+                        }
                     }
                 }
             }

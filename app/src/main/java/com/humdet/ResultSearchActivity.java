@@ -4,8 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +31,11 @@ public class ResultSearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_result_search);
 
 
+        String custom_font = "fonts/JackportRegularNcv.ttf";
+        Typeface CF = Typeface.createFromAsset(getAssets(), custom_font);
+        TextView textView = findViewById(R.id.textView2);
+        textView.setTypeface(CF);
+
 
         int lang = mSettings.getInt(conf.getLANG(),0);
         if(lang==conf.getRU()){
@@ -37,6 +45,7 @@ public class ResultSearchActivity extends AppCompatActivity {
         }/*else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
         }*/
+        textView.setText(array[16]);
 
         getSupportActionBar().setTitle(array[7]);
 
@@ -68,8 +77,14 @@ public class ResultSearchActivity extends AppCompatActivity {
             list.add(urlMas3);
             jsonObjects.add(jsonObject);
         }
+        if(list==null || list.size()==0) textView.setVisibility(View.VISIBLE);
         CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects);
         listView.setAdapter(adapter);
         listView.setClickable(false);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        finish();
     }
 }

@@ -102,7 +102,7 @@ public class NeuroTrainingActivity extends AppCompatActivity {
         buttonUpload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SaveNewFace saveNewFace = new SaveNewFace();
+                SaveNewFace saveNewFace = new SaveNewFace(NeuroTrainingActivity.this);
                 saveNewFace.setLat(0);
                 saveNewFace.setLng(0);
                 saveNewFace.setUsername("username");
@@ -202,5 +202,10 @@ public class NeuroTrainingActivity extends AppCompatActivity {
             cursor.close();
         }
         return result;
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        finish();
     }
 }

@@ -9,11 +9,11 @@ android {
     compileSdk 31
 
     defaultConfig {
-        applicationId "com.humdet"
+        applicationId "com.lesa"
         minSdk 22
         targetSdk 31
         maxSdkVersion 31
-        versionCode 4
+        versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -34,6 +34,9 @@ android {
     }
     lintOptions {
         abortOnError false
+    }
+    buildFeatures {
+        viewBinding true
     }
 
 }
