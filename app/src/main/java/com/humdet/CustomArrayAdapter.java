@@ -1,13 +1,17 @@
 package com.humdet;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
@@ -54,8 +58,12 @@ public class CustomArrayAdapter extends BaseAdapter{
             holder.imageView2 = (ImageView) v.findViewById(R.id.imageView2);
             holder.imageView3 = (ImageView) v.findViewById(R.id.imageView3);
             holder.imageView4 = (ImageView) v.findViewById(R.id.imageView4);
+            holder.progressBar1 = (ProgressBar) v.findViewById(R.id.progressBar1);
+            holder.progressBar2 = (ProgressBar) v.findViewById(R.id.progressBar2);
+            holder.progressBar3 = (ProgressBar) v.findViewById(R.id.progressBar3);
             v.setTag(holder);
         }
+
         holder.imageView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -83,6 +91,7 @@ public class CustomArrayAdapter extends BaseAdapter{
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(context,DetailActivity.class);
+                        Log.e("json",jsonObjects.get(position)[2].toString());
                         intent.putExtra("jsonObject",jsonObjects.get(position)[2].toString());
                         context.startActivity(intent);
                     }
@@ -93,30 +102,67 @@ public class CustomArrayAdapter extends BaseAdapter{
 
         String [] urls = url.get(position);
 
-        Picasso.get()
+
+        ViewHolder finalHolder = holder;
+        Picasso.with(context)
                 .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg")
                 .placeholder(R.drawable.man)
                 .error(R.drawable.person_ic)
-                .into(holder.imageView2);
+                .fit().centerCrop()
+                .into(holder.imageView2, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        finalHolder.progressBar1.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError() {
+                        finalHolder.progressBar1.setVisibility(View.GONE);
+                    }
+                });
 
 
         if(urls[1]!=null){
-            Picasso.get()
+            Picasso.with(context)
                     .load(conf.getDomen()+"image?imgname="+urls[1]+"_SMALL.jpg")
                     .placeholder(R.drawable.man)
                     .error(R.drawable.person_ic)
-                    .into(holder.imageView3);
+                    .fit().centerCrop()
+                    .into(holder.imageView3, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            finalHolder.progressBar2.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            finalHolder.progressBar2.setVisibility(View.GONE);
+                        }
+                    });
         }else{
             holder.imageView3.setVisibility(View.INVISIBLE);
+            finalHolder.progressBar2.setVisibility(View.GONE);
         }
         if(urls[2]!=null){
-            Picasso.get()
+            Picasso.with(context)
                     .load(conf.getDomen()+"image?imgname="+urls[2]+"_SMALL.jpg")
                     .placeholder(R.drawable.man)
                     .error(R.drawable.person_ic)
-                    .into(holder.imageView4);
+                    .fit().centerCrop()
+                    .into(holder.imageView4, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            finalHolder.progressBar3.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            finalHolder.progressBar3.setVisibility(View.GONE);
+                        }
+                    });
         }else{
             holder.imageView4.setVisibility(View.INVISIBLE);
+            finalHolder.progressBar3.setVisibility(View.GONE);
         }
 
 
@@ -128,6 +174,9 @@ public class CustomArrayAdapter extends BaseAdapter{
         private ImageView imageView2;
         private ImageView imageView3;
         private ImageView imageView4;
+        private ProgressBar progressBar1;
+        private ProgressBar progressBar2;
+        private ProgressBar progressBar3;
 
     }
     @Override

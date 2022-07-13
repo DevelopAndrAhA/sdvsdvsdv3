@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mapbox.mapboxsdk.Mapbox;
@@ -20,8 +22,10 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DetailActivity extends AppCompatActivity {
@@ -46,14 +50,25 @@ public class DetailActivity extends AppCompatActivity {
         percent = findViewById(R.id.percent);
         photoDate2 = findViewById(R.id.photoDate2);
         m_mapView = (MapView) findViewById(R.id.mapView);
+        ProgressBar progressBar = findViewById(R.id.progressBar);
         try{
             jsonObject = new JSONObject(getIntent().getStringExtra("jsonObject"));
         }catch (Exception e){}
         try{
-            Picasso.get()
+            Picasso.with(this)
                     .load(conf.getDomen()+"image?imgname="+jsonObject.getString("photoName")+".jpg")
                     .placeholder(R.drawable.hum_icon)
-                    .into(personImg);
+                    .into(personImg, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            progressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError() {
+
+                        }
+                    });
         }catch (Exception e){}
         per.getMyApplicationPermissions();
         m_mapView.onCreate(savedInstanceState);
@@ -94,11 +109,26 @@ public class DetailActivity extends AppCompatActivity {
         }*/
 
         try{
-            percent.setText(array[8]+" "+ Math.round(jsonObject.getDouble("percentage"))+"%");
             photoDate2.setText(array[9]+" "+jsonObject.getString("inpDate"));
+        }catch (Exception e){
+            try {
+                photoDate2.setText(array[9]+" "+jsonObject.getString("inp_date"));
+            } catch (JSONException jsonException) {}
+        }
+        try{
+            percent.setText(array[8]+" "+ Math.round(jsonObject.getDouble("percentage"))+"%");
             getSupportActionBar().setTitle(array[10]);
         }catch (Exception e){}
 
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        finish();
+        return true;
     }
     @Override
     protected void onStart() {

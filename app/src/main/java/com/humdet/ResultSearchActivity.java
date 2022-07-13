@@ -81,6 +81,15 @@ public class ResultSearchActivity extends AppCompatActivity {
         CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects);
         listView.setAdapter(adapter);
         listView.setClickable(false);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        finish();
+        return true;
     }
     @Override
     protected void onDestroy() {

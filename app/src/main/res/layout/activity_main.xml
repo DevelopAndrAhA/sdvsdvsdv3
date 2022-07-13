@@ -55,11 +55,9 @@
             <Button
                 android:id="@+id/button4"
                 style="@style/aButton"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/white"
-                android:visibility="gone" />
+                android:textColor="@color/white"/>
 
             <ImageButton
                 android:id="@+id/settings_btn"

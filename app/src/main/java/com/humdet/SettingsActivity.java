@@ -33,7 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(array[21]);
         CheckBox checkBox = findViewById(R.id.checkBox);
         checkBox.setText(array[17]);
-
+        checkBox.setChecked(true);
         if(mSettings.getBoolean("save_photo",false)){
             checkBox.setChecked(true);
         }
@@ -50,6 +50,15 @@ public class SettingsActivity extends AppCompatActivity {
             }
             Toast.makeText(SettingsActivity.this,array[19],Toast.LENGTH_SHORT).show();
         });
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        finish();
+        return true;
     }
 
     @Override

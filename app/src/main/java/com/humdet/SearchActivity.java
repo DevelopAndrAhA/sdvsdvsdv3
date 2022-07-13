@@ -60,7 +60,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     Button buttonSearch = null;
     private FaceDetector faceDetector;
     EditText dateEdit = null;
-    TextView percentTxt=null;
     JSONArray jsonArray;
 
 
@@ -134,27 +133,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                 new SearchTask().execute();
             }
         });
-        SeekBar seekBar = findViewById(R.id.seekBar);
-        percentTxt = findViewById(R.id.seekBarValue);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                percentTxt.setText(String.valueOf(progress)+" %");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-        TextView seeklabel = findViewById(R.id.seeklabel);
         TextView datelabel = findViewById(R.id.dateLabel);
-        seeklabel.setText(array[4]);
         datelabel.setText(array[5]);
         Calendar now = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -195,6 +174,15 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         }
         String locDateYear = dateMas[5]+"-"+locDatemMonthStr+"-"+locDateDayStr;
         dateEdit.setText(locDateYear);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        finish();
+        return true;
     }
 
 
@@ -248,26 +236,25 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     Bitmap faceBmp112_112=null;
     String masToSend = "";
     public void faceDetect(Bitmap bitmap,List<Face> faces,String imageName){
-        for(Face f : faces){
-            try{
-                Rect rect = f.getBoundingBox();
-                Bitmap orBmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), false);
-                Bitmap faceBmp = Bitmap.createBitmap(orBmp, rect.left, rect.top, rect.width(), rect.height());
-                faceBmp112_112 = Bitmap.createScaledBitmap(faceBmp, 112, 112, false);
-                buttonSearch.setVisibility(View.VISIBLE);
-                final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp112_112, true);
-                SimilarityClassifier.Recognition result = resultsAux.get(0);
-                float mas[][] = (float[][]) result.getExtra();
-                for(int i=0;i<mas[0].length;i++){
-                    masToSend += mas[0][i];
-                    if(i!=mas[0].length-1){
-                        masToSend = masToSend+",";
-                    }
+        Face f = faces.get(0);
+        try{
+            Rect rect = f.getBoundingBox();
+            Bitmap orBmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), false);
+            Bitmap faceBmp = Bitmap.createBitmap(orBmp, rect.left, rect.top, rect.width(), rect.height());
+            faceBmp112_112 = Bitmap.createScaledBitmap(faceBmp, 112, 112, false);
+            buttonSearch.setVisibility(View.VISIBLE);
+            final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp112_112, true);
+            SimilarityClassifier.Recognition result = resultsAux.get(0);
+            float mas[][] = (float[][]) result.getExtra();
+            for(int i=0;i<mas[0].length;i++){
+                masToSend += mas[0][i];
+                if(i!=mas[0].length-1){
+                    masToSend = masToSend+",";
                 }
-            }catch (Exception e){
-                Toast.makeText(SearchActivity.this,array[15],Toast.LENGTH_SHORT).show();
-                buttonSearch.setVisibility(View.INVISIBLE);
             }
+        }catch (Exception e){
+            Toast.makeText(SearchActivity.this,array[15],Toast.LENGTH_SHORT).show();
+            buttonSearch.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -313,7 +300,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             //byte[] cropByteArray = stream.toByteArray();
             OkHttpClient client = new OkHttpClient();
             try {
-                String url = "search?percent="+percentTxt.getText().toString().split(" ")[0]+"&inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0";
+                String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0";
                 Log.e("url",url);
                 com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
                         .url(conf.getDomen()+ url)
@@ -339,50 +326,16 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                 Intent intent = new Intent(SearchActivity.this,ResultSearchActivity.class);
                 intent.putExtra("jsonArray",jsonArray.toString());
                 startActivity(intent);
+                jsonArray = null;
             }else{
                 Toast.makeText(SearchActivity.this,array[13],Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    //private SimilarityClassifier detector;
-    /*private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
-    private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
-    private static final int TF_OD_API_INPUT_SIZE = 112;
-    private static final boolean TF_OD_API_IS_QUANTIZED = false;
-
-
-    final List<SimilarityClassifier.Recognition> mappedRecognitions =
-            new LinkedList<SimilarityClassifier.Recognition>();*/
-
-    /*public void teach(Bitmap faceBmp,RectF boundingBox,String image){
-        try {
-            detector =
-                    TFLiteObjectDetectionAPIModel.create(
-                            getAssets(),
-                            TF_OD_API_MODEL_FILE,
-                            TF_OD_API_LABELS_FILE,
-                            TF_OD_API_INPUT_SIZE,
-                            TF_OD_API_IS_QUANTIZED);
-            //cropSize = TF_OD_API_INPUT_SIZE;
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-        float confidence = -1f;
-
-        final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp, true);
-        final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition("0", "label", confidence, boundingBox,"");
-        result.setColor(123);
-        result.setLocation(boundingBox);
-        result.setExtra(resultsAux.get(0).getExtra());
-        float f [][] = (float[][])resultsAux.get(0).getExtra();
-        for(int i=0;i<f[0].length;i++){
-            Log.e(image,f[0][i]+"");
-        }
-        result.setCrop(faceBmp);
-        mappedRecognitions.add(result);
-        SimilarityClassifier.Recognition rec = mappedRecognitions.get(0);
-        detector.register("label001", rec);
-
-    }*/
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        finish();
+    }
 }

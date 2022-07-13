@@ -20,6 +20,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
+import android.util.Log;
 import android.util.Pair;
 
 import java.io.BufferedReader;
@@ -168,7 +169,10 @@ public class TFLiteObjectDetectionAPIModel
 
   // ищет ближайшее вложение в наборе данных (используя норму L2) и возвращает пару <id, Distance>
   private Pair<String, Float> findNearest(float[] emb) {
-
+    if(registered.size()>2){
+      Log.e("DEBUG","DEBUG");
+    }
+    Log.e("registered",registered.size()+"");
     Pair<String, Float> ret = null;
     for (Map.Entry<String, Recognition> entry : registered.entrySet()) {
         final String name = entry.getKey();

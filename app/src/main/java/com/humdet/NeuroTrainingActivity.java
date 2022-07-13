@@ -12,11 +12,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -28,8 +30,11 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.humdet.tflite.SimilarityClassifier;
 import com.humdet.tflite.TFLiteObjectDetectionAPIModel;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.List;
 
@@ -52,7 +57,7 @@ public class NeuroTrainingActivity extends AppCompatActivity {
     private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
     private static final int TF_OD_API_INPUT_SIZE = 112;
     private static final boolean TF_OD_API_IS_QUANTIZED = false;
-
+    TextView editTextTextPersonName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +107,7 @@ public class NeuroTrainingActivity extends AppCompatActivity {
         buttonUpload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 SaveNewFace saveNewFace = new SaveNewFace(NeuroTrainingActivity.this);
                 saveNewFace.setLat(0);
                 saveNewFace.setLng(0);
@@ -116,6 +122,7 @@ public class NeuroTrainingActivity extends AppCompatActivity {
                         masToSend = masToSend+",";
                     }
                 }
+                //save(masToSend,editTextTextPersonName.getText().toString());
                 saveNewFace.setCrop(masToSend);
                 saveNewFace.setLargePohto(fileToSend);
                 saveNewFace.setTitle(array[14]);
@@ -125,9 +132,18 @@ public class NeuroTrainingActivity extends AppCompatActivity {
                 saveNewFace.execute();
             }
         });
+        editTextTextPersonName = findViewById(R.id.editTextTextPersonName);
 
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
-
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        finish();
+        return true;
+    }
 
     public void faceDatector(Bitmap bitmap){
         InputImage image = InputImage.fromBitmap(bitmap, 0);
@@ -181,14 +197,28 @@ public class NeuroTrainingActivity extends AppCompatActivity {
                 Bitmap faceBmp = Bitmap.createBitmap(orBmp, rect.left, rect.top, rect.width(), rect.height());
                 faceBmp112_112 = Bitmap.createScaledBitmap(faceBmp, 112, 112, false);
                 buttonUpload.setVisibility(View.VISIBLE);
-                //teach(faceBmp112_112,boundingBox,imageName);
             }catch (Exception e){
                 Toast.makeText(NeuroTrainingActivity.this,array[15],Toast.LENGTH_SHORT).show();
                 buttonUpload.setVisibility(View.INVISIBLE);
             }
         }
     }
+    public void save(String strmas,String name){
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final File file = new File(Environment.getExternalStorageDirectory() + File.separator + "Documents" + File.separator + name+".txt");
+                try{
+                    file.createNewFile();
+                    FileWriter fileOutputStream = new FileWriter(file);
+                    fileOutputStream.write(strmas);
+                    fileOutputStream.close();
+                }catch (Exception e){e.printStackTrace();}
+            }
+        });
+        t.start();
 
+    }
     Uri uriToSend=null;
     private String getRealPathFromUri(Uri contentUri){
         String result=null;

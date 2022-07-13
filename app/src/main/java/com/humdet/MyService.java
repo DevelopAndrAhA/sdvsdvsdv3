@@ -172,7 +172,7 @@ public class MyService extends Service {
         }/* else if (lang == conf.getAR()) {
             array = getResources().getStringArray(R.array.app_lang_ar);
         }*/
-
+        saveNewFace = new SaveNewFace(getApplicationContext());
         texture.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, final int width, final int height) {
@@ -722,8 +722,10 @@ public class MyService extends Service {
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }*/
-                                saveNewFace.setLat(lat);
-                                saveNewFace.setLng(lng);
+                                try{
+                                    saveNewFace.setLat(lat);
+                                    saveNewFace.setLng(lng);
+                                }catch (Exception e){}
                                 saveNewFace.setUsername(currTimestamp+"");
                                 float mas[][] = (float[][]) finalRec.getExtra();
                                 String masToSend = "";

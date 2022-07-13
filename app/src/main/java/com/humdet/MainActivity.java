@@ -22,6 +22,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -174,9 +175,14 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);*/
         ImageButton settings_btn = findViewById(R.id.settings_btn);
+        ImageButton img_activity = findViewById(R.id.img_activity);
         settings_btn.setOnClickListener(e -> {
             Intent intent2 = new Intent(this,SettingsActivity.class);
             startActivity(intent2);
+        });
+
+        img_activity.setOnClickListener(e -> {
+            new GetDataWithoutLoc().execute();
         });
     }
     AlertDialog alert = null;
@@ -391,5 +397,52 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         }
     }
 
+
+
+    class GetDataWithoutLoc extends AsyncTask<Void,Void,Void> {
+        JSONArray jsonArray;
+        private ProgressDialog dialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            dialog = new ProgressDialog(MainActivity.this);
+            dialog.setMessage(array[2]);
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            OkHttpClient client = new OkHttpClient();
+            try {
+                String url = "getFirstData4imgs";
+                com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
+                        .url(conf.getDomen()+ url)
+                        .build();
+                Call call1 = client.newCall(request1);
+                final Response response = call1.execute();
+                String res = response.body().string();
+                Log.e("res",res);
+                try{
+                    jsonArray = new JSONArray(res);
+                }catch (Exception e){}
+            }catch (Exception e){}
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+            if(jsonArray!=null){
+                Intent intent = new Intent(MainActivity.this,ResultSearchActivity.class);
+                intent.putExtra("jsonArray",jsonArray.toString());
+                startActivity(intent);
+            }else{
+                Toast.makeText(MainActivity.this,array[22],Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
 }
