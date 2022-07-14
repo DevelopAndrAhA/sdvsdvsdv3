@@ -2,7 +2,8 @@ package com.humdet;
 
 public class Conf {
     private String shared_pref_name = "settings_gz";
-    private String domen = "http://18.206.137.118:8080/api/";
+    //private String domen = "http://18.206.137.118:8080/api/";
+    private String domen = "https://lesa01.herokuapp.com/api/";
 //<!--android:networkSecurityConfig="@xml/network_security_config"-->
 
     private final String LANG = "lang";

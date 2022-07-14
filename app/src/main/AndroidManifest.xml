@@ -6,14 +6,18 @@
         android:allowBackup="true"
         android:icon="@drawable/iconhumdet"
         android:label="@string/app_name"
-        android:usesCleartextTraffic="true"
         android:roundIcon="@drawable/iconhumdet"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GOZ">
+        android:theme="@style/Theme.GOZ"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".FullImageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"  />
         <activity
             android:name=".SettingsActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".LaunchActivity"
             android:exported="true"

@@ -77,8 +77,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         super.onCreate(savedInstanceState);
 
         Mapbox.getInstance(this, "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);

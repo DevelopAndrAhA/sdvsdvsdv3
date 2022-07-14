@@ -3,6 +3,7 @@ package com.humdet;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -29,6 +31,12 @@ import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.humdet.tflite.SimilarityClassifier;
 import com.humdet.tflite.TFLiteObjectDetectionAPIModel;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import org.json.JSONArray;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -137,6 +145,48 @@ public class NeuroTrainingActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        Button DELDATA = findViewById(R.id.DELDATA);
+        DELDATA.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                class DeleteTask extends AsyncTask<Void,Void,Void>{
+                    private ProgressDialog dialog;
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                        dialog = new ProgressDialog(NeuroTrainingActivity.this);
+                        dialog.setMessage(array[1]);
+                        dialog.show();
+                    }
+
+                    int status=0;
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        OkHttpClient client = new  OkHttpUtils().getInstance();
+                        Request request = new Request.Builder()
+                                .url(conf.getDomen()+ "deleteFullFace")
+                                .build();
+                        Call call = client.newCall(request);
+                        try{
+                            Response response = call.execute();
+                            status = response.code();
+                        }catch (Exception e){e.printStackTrace();}
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void unused) {
+                        super.onPostExecute(unused);
+                        if (dialog.isShowing()) {
+                            dialog.dismiss();
+                        }
+                        Toast.makeText(NeuroTrainingActivity.this, ""+status, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                new DeleteTask().execute();
+            }
+
+        });
     }
     @Override
     public boolean onSupportNavigateUp() {

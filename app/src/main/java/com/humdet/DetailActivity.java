@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -58,10 +59,21 @@ public class DetailActivity extends AppCompatActivity {
             Picasso.with(this)
                     .load(conf.getDomen()+"image?imgname="+jsonObject.getString("photoName")+".jpg")
                     .placeholder(R.drawable.hum_icon)
+                    .fit().centerCrop()
                     .into(personImg, new Callback() {
                         @Override
                         public void onSuccess() {
                             progressBar.setVisibility(View.GONE);
+                            personImg.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    try{
+                                        Intent intent = new Intent(DetailActivity.this,FullImageActivity.class);
+                                        intent.putExtra("photoName",jsonObject.getString("photoName"));
+                                        startActivity(intent);
+                                    }catch (Exception e){}
+                                }
+                            });
                         }
 
                         @Override
