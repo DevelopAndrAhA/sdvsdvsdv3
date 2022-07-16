@@ -6,9 +6,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Icon;
 import android.os.Bundle;
+import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -16,6 +19,7 @@ public class SettingsActivity extends AppCompatActivity {
     Conf conf = new Conf();
     SharedPreferences mSettings;
     SharedPreferences.Editor editor;
+    Spinner spinner = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,22 +41,32 @@ public class SettingsActivity extends AppCompatActivity {
         if(mSettings.getBoolean("save_photo",false)){
             checkBox.setChecked(true);
         }
-
+        TextView textView3 = findViewById(R.id.textView3);
+        textView3.setText(array[24]);
         Button button = findViewById(R.id.button3);
         button.setText(array[18]);
         button.setOnClickListener(e -> {
             if(checkBox.isChecked()){
                 editor.putBoolean("save_photo",true);
-                editor.apply();
             }else{
                 editor.putBoolean("save_photo",false);
-                editor.apply();
             }
+            String selected = spinner.getSelectedItem().toString();
+            if(selected.equals("English")){
+                editor.putInt(conf.getLANG(),2);
+            }else if(selected.equals("Русский")){
+                editor.putInt(conf.getLANG(),1);
+            }
+            editor.apply();
             Toast.makeText(SettingsActivity.this,array[19],Toast.LENGTH_SHORT).show();
         });
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        spinner = findViewById(R.id.spinner);
+
+
     }
     @Override
     public boolean onSupportNavigateUp() {

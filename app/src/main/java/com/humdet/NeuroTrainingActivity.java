@@ -1,16 +1,23 @@
 package com.humdet;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -46,7 +53,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.List;
 
-public class NeuroTrainingActivity extends AppCompatActivity {
+public class NeuroTrainingActivity extends AppCompatActivity implements LocationListener {
     final int Pic_image=299;
     private String [] array;
     Conf conf = new Conf();
@@ -66,10 +73,12 @@ public class NeuroTrainingActivity extends AppCompatActivity {
     private static final int TF_OD_API_INPUT_SIZE = 112;
     private static final boolean TF_OD_API_IS_QUANTIZED = false;
     TextView editTextTextPersonName = null;
+    LocationManager locationManager = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
         setContentView(R.layout.activity_neuro_training);
         bOptions = new BitmapFactory.Options();
@@ -187,6 +196,19 @@ public class NeuroTrainingActivity extends AppCompatActivity {
             }
 
         });
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        Location gpsLoc = locationManager.getLastKnownLocation(locationManager.GPS_PROVIDER);
+        if(providerStatus(locationManager)){
+            onLocationChanged(gpsLoc);
+        }
+        Location networkLoc = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
+        if(providerStatus(locationManager)){
+            onLocationChanged(networkLoc);
+        }
     }
     @Override
     public boolean onSupportNavigateUp() {
@@ -195,6 +217,14 @@ public class NeuroTrainingActivity extends AppCompatActivity {
         return true;
     }
 
+    double lat=0,lng=0;
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        if(location!=null){
+            lat = location.getLatitude();
+            lng = location.getLongitude();
+        }
+    }
     public void faceDatector(Bitmap bitmap){
         InputImage image = InputImage.fromBitmap(bitmap, 0);
         try {
@@ -287,5 +317,14 @@ public class NeuroTrainingActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         finish();
+    }
+    public boolean providerStatus(LocationManager locManager){
+        boolean gps_enabled=locManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean network_enabled=locManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if(gps_enabled){
+        }else if(network_enabled){
+            return network_enabled;
+        }
+        return false;
     }
 }

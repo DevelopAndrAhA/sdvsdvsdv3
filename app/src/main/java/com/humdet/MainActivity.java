@@ -36,6 +36,8 @@ import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     SharedPreferences.Editor editor;
     private String [] array;
     Conf conf = new Conf();
-
+    JSONArray humPhotos;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,7 +113,18 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 Icon paellaIcon = IconFactory.getInstance(MainActivity.this).defaultMarker();
                 //Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bmp)
                 Marker marker =  mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(lat, lng)).setTitle("").setIcon(paellaIcon));
-
+                mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(@NonNull Marker marker) {
+                                try{
+                                    JSONObject jsonObject = humPhotos.getJSONObject((int)marker.getId()-1);
+                                    Intent intent = new Intent(MainActivity.this,DetailActivity.class);
+                                    intent.putExtra("jsonObject",jsonObject.toString());
+                                    startActivity(intent);
+                                }catch (Exception e){e.printStackTrace();}
+                        return false;
+                    }
+                });
             }
         });
 
@@ -134,8 +147,16 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
             return;
         }
-        Location location = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
-        onLocationChanged(location);
+
+        Location gpsLoc = locationManager.getLastKnownLocation(locationManager.GPS_PROVIDER);
+        if(providerStatus(locationManager)){
+            onLocationChanged(gpsLoc);
+        }
+        Location networkLoc = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
+        if(providerStatus(locationManager)){
+            onLocationChanged(networkLoc);
+        }
+
         
         new GetData().execute();
         Button button3 = findViewById(R.id.button3);
@@ -181,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         });
 
         img_activity.setOnClickListener(e -> {
-            new GetDataWithoutLoc().execute();
+            new GetDataWithoutMap().execute();
         });
     }
     AlertDialog alert = null;
@@ -287,16 +308,25 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     }
 
     LocationManager locationManager = null;
-    double lat=42.877107,lng=74.578294;
-    JSONArray humPhotos;
-    List<HumData> humDataList = new ArrayList<HumData>();
+    //double lat=42.876096,lng=74.614617;//цум
+    double lat=42.877107,lng=74.578294;//юр
 
+
+    List<HumData> humDataList = new ArrayList<HumData>();
     @Override
     public void onLocationChanged(@NonNull Location location) {
              if(location!=null){
                  lat = location.getLatitude();
                  lng = location.getLongitude();
+                 CameraPosition cameraPosition = new CameraPosition.Builder()
+                         .target(new LatLng(lat, lng))
+                         .zoom(20)
+                         .bearing(90)
+                         .tilt(40)
+                         .build();
+                 m_map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
              }
+
     }
 
     Bitmap[] bmps;
@@ -348,6 +378,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             super.onPreExecute();
             dialog = new ProgressDialog(MainActivity.this);
             dialog.setMessage(array[1]);
+            dialog.setCancelable(false);
             dialog.show();
         }
 
@@ -398,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
 
-    class GetDataWithoutLoc extends AsyncTask<Void,Void,Void> {
+    class GetDataWithoutMap extends AsyncTask<Void,Void,Void> {
         JSONArray jsonArray;
         private ProgressDialog dialog;
         @Override
@@ -406,6 +437,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             super.onPreExecute();
             dialog = new ProgressDialog(MainActivity.this);
             dialog.setMessage(array[2]);
+            dialog.setCancelable(false);
             dialog.show();
         }
 
@@ -420,7 +452,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 Call call1 = client.newCall(request1);
                 final Response response = call1.execute();
                 String res = response.body().string();
-                Log.e("res",res);
                 try{
                     jsonArray = new JSONArray(res);
                 }catch (Exception e){}
@@ -444,4 +475,13 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         }
     }
 
+    public boolean providerStatus(LocationManager locManager){
+        boolean gps_enabled=locManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean network_enabled=locManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if(gps_enabled){
+        }else if(network_enabled){
+            return network_enabled;
+        }
+        return false;
+    }
 }
