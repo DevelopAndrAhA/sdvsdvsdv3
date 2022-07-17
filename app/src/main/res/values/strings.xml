@@ -39,8 +39,7 @@
         <item>Latest photos</item>
         <item>Language</item>
         <item>Ping (location of a person at the moment)</item>
-        <item>Under testing
-</item>
+        <item>Under testing</item>
     </string-array>
     <string-array name="app_lang_ru">
         <item>Скрыть</item>

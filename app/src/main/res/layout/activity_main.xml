@@ -57,8 +57,7 @@
                 style="@style/aButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:visibility="gone" />
+                android:textColor="@color/white" />
 
             <ImageButton
                 android:id="@+id/settings_btn"

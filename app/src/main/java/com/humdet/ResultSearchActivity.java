@@ -45,7 +45,12 @@ public class ResultSearchActivity extends AppCompatActivity {
         }/*else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
         }*/
-        textView.setText(array[16]);
+        boolean main = getIntent().getBooleanExtra("main",false);
+        if(main){
+            textView.setText(array[22]);//metka 2
+        }else{
+            textView.setText(array[16]);
+        }
 
         getSupportActionBar().setTitle(array[7]);
 

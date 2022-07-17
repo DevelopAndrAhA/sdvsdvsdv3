@@ -45,7 +45,8 @@ public class ResultImgsActivity extends AppCompatActivity {
         }/*else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
         }*/
-        textView.setText(array[22]);
+
+        textView.setText(array[22]);//metka
 
         getSupportActionBar().setTitle(array[23]);
 

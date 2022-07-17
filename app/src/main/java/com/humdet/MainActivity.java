@@ -468,6 +468,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             if(jsonArray!=null){
                 Intent intent = new Intent(MainActivity.this,ResultSearchActivity.class);
                 intent.putExtra("jsonArray",jsonArray.toString());
+                intent.putExtra("main",true);
                 startActivity(intent);
             }else{
                 Toast.makeText(MainActivity.this,array[22],Toast.LENGTH_SHORT).show();
