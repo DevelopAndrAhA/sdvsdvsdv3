@@ -45,6 +45,7 @@ import java.util.List;
 
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -61,7 +62,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     private FaceDetector faceDetector;
     EditText dateEdit = null;
     JSONArray jsonArray;
-
 
 
     private SimilarityClassifier detector;
@@ -139,23 +139,27 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             now = Calendar.getInstance();
         }
-        DatePickerDialog dpd = DatePickerDialog.newInstance(
-                SearchActivity.this,
-                now.get(Calendar.YEAR),
-                now.get(Calendar.MONTH),
-                now.get(Calendar.DAY_OF_MONTH)
-        );
         dateEdit = findViewById(R.id.editTextDate2);
-        DatePickerDialog finalDpd = dpd;
-        dateEdit.setFocusable(false);
-        dateEdit.setFocusableInTouchMode(false);
-        dateEdit.setClickable(true);
-        dateEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finalDpd.show(getSupportFragmentManager(), "Datepickerdialog");
-            }
-        });
+
+        try{
+            DatePickerDialog dpd = DatePickerDialog.newInstance(
+                    SearchActivity.this,
+                    now.get(Calendar.YEAR),
+                    now.get(Calendar.MONTH),
+                    now.get(Calendar.DAY_OF_MONTH)
+            );
+            DatePickerDialog finalDpd = dpd;
+            dateEdit.setFocusable(false);
+            dateEdit.setFocusableInTouchMode(false);
+            dateEdit.setClickable(true);
+            dateEdit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    finalDpd.show(getSupportFragmentManager(), "Datepickerdialog");
+                }
+            });
+        }catch (Exception e){}
+
         Date tmpDate = new Date();
         String dateMas [] = tmpDate.toString().split(" ");
         int locDateDay = Integer.parseInt(dateMas[2]);

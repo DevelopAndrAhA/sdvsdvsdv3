@@ -48,11 +48,12 @@ public class ResultSearchActivity extends AppCompatActivity {
         boolean main = getIntent().getBooleanExtra("main",false);
         if(main){
             textView.setText(array[22]);//metka 2
+            getSupportActionBar().setTitle("");
         }else{
             textView.setText(array[16]);
+            getSupportActionBar().setTitle(array[7]);
         }
 
-        getSupportActionBar().setTitle(array[7]);
 
         try{
             jsonArray = new JSONArray(getIntent().getStringExtra("jsonArray"));

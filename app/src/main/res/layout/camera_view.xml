@@ -5,7 +5,7 @@
     android:id="@+id/constraint"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="#60812525"
+    android:background="#1E4590ED"
     android:foregroundGravity="center"
     app:layout_anchorGravity="center">
 

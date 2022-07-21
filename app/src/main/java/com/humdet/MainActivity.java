@@ -129,8 +129,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         });
 
 
-        Intent intent = new Intent(MainActivity.this,MyService.class);
-        startService(intent);
+        /*Intent intent = new Intent(MainActivity.this,MyService.class);
+        startService(intent);*/
         getSupportActionBar().hide();
 
         int lang = mSettings.getInt(conf.getLANG(),1);
@@ -436,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         protected void onPreExecute() {
             super.onPreExecute();
             dialog = new ProgressDialog(MainActivity.this);
-            dialog.setMessage(array[2]);
+            dialog.setMessage(array[1]);
             dialog.setCancelable(false);
             dialog.show();
         }
