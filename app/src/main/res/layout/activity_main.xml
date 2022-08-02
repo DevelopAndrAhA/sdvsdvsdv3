@@ -30,8 +30,8 @@
             android:layout_weight="1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:mapbox_cameraTargetLat="42.876583"
-            app:mapbox_cameraTargetLng="74.588290"
+            app:mapbox_cameraTargetLat="37.219272"
+            app:mapbox_cameraTargetLng="-106.197234"
             app:mapbox_cameraZoom="16"
             app:mapbox_cameraZoomMax="19"
             app:mapbox_cameraZoomMin="8" />

@@ -14,6 +14,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -52,6 +54,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                         return false;
                     }
                 });
+
+                simpleSample(mapboxMap);
             }
         });
 
@@ -205,6 +210,34 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             new GetDataWithoutMap().execute();
         });
     }
+    private void simpleSample(MapboxMap mapboxMap) {
+        Geocoder gc = new Geocoder(this);
+        try {
+            List<Address> list= gc.getFromLocationName("AZERBAYDZHN",1);
+            Address address = list.get(0);
+            Log.e("address",address.toString());
+            if(address!=null){
+                lat=address.getLatitude();
+                lng=address.getLongitude();
+                Location location = new Location("");
+                location.setLatitude(lat);
+                location.setLongitude(lng);
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(lat, lng))
+                        .zoom(20)
+                        .bearing(90)
+                        .tilt(40)
+                        .build();
+                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
+        } catch (Exception e) { }
+    }
+
+//    Таблица country содержит список стран.
+//    Таблица region содержит список регионов.
+//    Таблица city содержит список городов.
+
+
     AlertDialog alert = null;
     private void showAlertDialog() {
         final int[] lang = {0};
@@ -309,7 +342,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
     LocationManager locationManager = null;
     //double lat=42.876096,lng=74.614617;//цум
-    double lat=42.877107,lng=74.578294;//юр
+    //double lat=42.877107,lng=74.578294;//юр
+    double lat=0,lng=0;
 
 
     List<HumData> humDataList = new ArrayList<HumData>();
