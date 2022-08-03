@@ -28,6 +28,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -209,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         img_activity.setOnClickListener(e -> {
             new GetDataWithoutMap().execute();
         });
+        new ShowCountry().execute();
     }
     private void simpleSample(MapboxMap mapboxMap) {
         Geocoder gc = new Geocoder(this);
@@ -519,4 +521,57 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         }
         return false;
     }
+
+    class ShowCountry extends AsyncTask<Void,Void,Void>{
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
+
+        private ProgressDialog dialog;
+        ArrayAdapter<String> arrayAdapter;
+        ArrayAdapter<String> arrayAdapter2;
+        AlertDialog.Builder builderInner;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            dialog = new ProgressDialog(MainActivity.this);
+            dialog.setMessage(array[1]);
+            dialog.setCancelable(false);
+            dialog.show();
+
+            arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.country_id));
+            arrayAdapter2 = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.country_name));
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String strName = arrayAdapter.getItem(which);
+                    builderInner = new AlertDialog.Builder(MainActivity.this);
+                    builderInner.setMessage(strName);
+                    builderInner.setTitle("Your Selected Item is");
+                    builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog,int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                }
+            });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+
+            builderSingle.show();
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+        }
+    }
+
+
+
 }
