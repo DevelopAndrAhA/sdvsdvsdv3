@@ -12,6 +12,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
@@ -34,6 +37,10 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 
+import com.humdet.db.AlohaDb;
+import com.humdet.db.City;
+import com.humdet.db.Country;
+import com.humdet.db.Region;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -55,8 +62,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -210,7 +219,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         img_activity.setOnClickListener(e -> {
             new GetDataWithoutMap().execute();
         });
-        new ShowCountry().execute();
+
+        showCountryAlert();
     }
     private void simpleSample(MapboxMap mapboxMap) {
         Geocoder gc = new Geocoder(this);
@@ -235,9 +245,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         } catch (Exception e) { }
     }
 
-//    Таблица country содержит список стран.
-//    Таблица region содержит список регионов.
-//    Таблица city содержит список городов.
 
 
     AlertDialog alert = null;
@@ -522,56 +529,56 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         return false;
     }
 
-    class ShowCountry extends AsyncTask<Void,Void,Void>{
+
+    public void showCountryAlert(){
+        AlohaDb alohaDb = new AlohaDb(MainActivity.this);
+        SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
+        alohaDb.iniDb(sqLiteDatabase);
+        List<Country> list = alohaDb.getAllCountry();
+
+
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
+        builderSingle.setIcon(R.drawable.location_icon);
+        builderSingle.setTitle("Select One Name:-");
 
-        private ProgressDialog dialog;
-        ArrayAdapter<String> arrayAdapter;
-        ArrayAdapter<String> arrayAdapter2;
-        AlertDialog.Builder builderInner;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            dialog = new ProgressDialog(MainActivity.this);
-            dialog.setMessage(array[1]);
-            dialog.setCancelable(false);
-            dialog.show();
-
-            arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.country_id));
-            arrayAdapter2 = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.country_name));
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+        for(int i=0;i<list.size();i++){
+            arrayAdapter.add(list.get(i).getName());
         }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    String strName = arrayAdapter.getItem(which);
-                    builderInner = new AlertDialog.Builder(MainActivity.this);
-                    builderInner.setMessage(strName);
-                    builderInner.setTitle("Your Selected Item is");
-                    builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog,int which) {
-                            dialog.dismiss();
-                        }
-                    });
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Region> regions = alohaDb.getRegions(which);
+                final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+                for(int i=0;i<regions.size();i++){
+                    arrayAdapterReg.add(regions.get(i).getName());
                 }
-            });
-            return null;
-        }
 
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
 
-            builderSingle.show();
-            if (dialog.isShowing()) {
-                dialog.dismiss();
+                AlertDialog.Builder builderInnerRegion = new AlertDialog.Builder(MainActivity.this);
+                builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        List<City> cities = alohaDb.getCities(i);
+                        final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+                        for(int k=0;i<cities.size();k++){
+                            arrayCity.add(cities.get(k).getName());
+                        }
+
+                        AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(MainActivity.this);
+                        builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialog.dismiss();
+                            }
+                        });
+                        builderInnerCity.show();
+                    }
+                });
+                builderInnerRegion.show();
             }
-        }
+        });
+        builderSingle.show();
     }
-
-
 
 }

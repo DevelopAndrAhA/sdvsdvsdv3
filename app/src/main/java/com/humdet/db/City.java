@@ -28,4 +28,13 @@ public class City {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return "City{" +
+                "id=" + id +
+                ", region_id=" + region_id +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }
