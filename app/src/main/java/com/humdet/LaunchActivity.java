@@ -85,6 +85,7 @@ public class LaunchActivity extends AppCompatActivity {
             super.onPreExecute();
             dialog = new ProgressDialog(LaunchActivity.this);
             dialog.setCancelable(false);
+            dialog.setTitle("Initializing city list, please wait 1 minute");
             dialog.show();
             alohaDb.iniDb(sqLiteDatabase);
         }

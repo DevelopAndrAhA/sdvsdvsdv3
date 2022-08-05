@@ -40,6 +40,9 @@
         <item>Language</item>
         <item>Ping (location of a person at the moment)</item>
         <item>Under testing</item>
+        <item>Select address</item>
+        <item>Change address</item>
+        <item>Current  address</item>
     </string-array>
     <string-array name="app_lang_ru">
         <item>Скрыть</item>
@@ -69,6 +72,9 @@
         <item>Язык</item>
         <item>Пинг(местонахождение человека в данный момент)</item>
         <item>В стадии тестирования</item>
+        <item>Выбрать адрес</item>
+        <item>Сменить адрес</item>
+        <item>Текущий адрес</item>
     </string-array>
 
 

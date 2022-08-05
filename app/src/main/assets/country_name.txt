@@ -1,218 +1,218 @@
-ROSSIYA
-UKRAINA
-ABKHAZIYA
-AVSTRALIYA
-AVSTRIYA
-AZERBAYDZHN
-ALBANIYA
-ALZHR
-ANGOLA
-ANGUIL'YA
-ANDORRA
-ANTIGUA I BARBUDA
-ANTIL'SKIE OVA
-ARGENTINA
-ARMENIYA
-ARUL'KO
-AFGANISTAN
-BAGAMSKIE OVA
-BANGLADESH
-BARBADOS
-BAKHREYN
-BELARUS'
-BELIZ
-BEL'GIYA
-BENIN
-BERMUD
-BOLGARIYA
-BOLIVIYA
-BOSNIYAGERTSGOVINA
-BOTSVANA
-BRAZILIYA
-BRITANSKIE VIRGINSKIE OVA
-BRUNEY
-BURKINA FASO
-BURUNDI
-BUTAN
-VALLIS I FUTUNA OVA
-VANUATU
-VELIKOBRITANIYA
-VENGRIYA
-VENESUELA
-VOSTOCHYY TIMOR
-V'ETNAM
-GABON
-GAITI
-GAYANA
-GAMBIYA
-GANA
-GVADELUPA
-GVATEMALA
-GVINEYA
-GVINEYABISAU
-GERMANIYA
-GERNSI OV
-GIBRALTAR
-GONDURAS
-GONKONG
-GRENADA
-GRENLANDIYA
-GRETSYA
-GRUZIYA
-DANIYA
-DZHRSI OV
-DZHBUTI
-DOMINIKANSKAYARESPUBLIKA
-EGIPET
-ZAMBIYA
-ZAPADNAYASAKHARA
-ZIMBABVE
-IZRAIL'
-INDIYA
-INDONEZIYA
-IORDANIYA
-IRAK
-IRAN
-IRLANDIYA
-ISLANDIYA
-ISPANIYA
-ITALIYA
-YEMEN
-KABOVERDE
-KAZAKHSTAN
-KAMBODZH
-KAMERUN
-KANADA
-KATAR
-KENIYA
-KIPR
-KIRIBATI
-KITAY
-KOLUMBIYA
-KOMORSKIE OVA
-KONGO 
-KONGO 
-KOSTARIKA
-KOTDIVUAR
-KUBA
-KUVEYT
-KUKA OVA
-KYRGYZSTAN
-LAOS
-LATVIYA
-LESOTO
-LIBERIYA
-LIVAN
-LIVIYA
-LITVA
-LIKHTENSHEYN
-LYUSEMBURG
-MAVRIKIY
-MAVRITANIYA
-MADAGASKAR
-MAKEDONIYA
-MALAVI
-MALAYZIYA
-MALI
-MAL'DIVSKIE OVA
-MAL'TA
-MARTINIKA OV
-MEKSIKA
-MOZAMBIK
-MOLDOVA
-MONAKO
-MONGOLIYA
-MAROKKO
-M'YAMA BIRMA
-MEN OV
-NAMIBIYA
-NAURU
-NEPAL
-NIGER
-NIGERIYA
-NIDERLANDY GOLLANDIYA
-NIKARAGUA
-NOVAYAZELANDIYA
-NOVAYAKALEDONIYAOV
-NORVEGIYA
-NORFOLK OV
-OAE
-OMAN
-PAKISTAN
-PANAMA
-PAPUA NOVAYAGVINEYA
-PARAGVAY
-PERU
-PITKERN OV
-POL'SH
-PORTUGALIYA
-PUERTO RIKO
-REYU'ON
-RUANDA
-RUMYNIYA
-SSH
-SAL'VADOR
-SAMOA
-SANMARINO
-SANTOME I PRINSIPI
-SAUDOVSKAYAARAVIYA
-SVAZILEND
-SVYAAYALYUIYA
-SVYAOY ELEN OV
-SEVERNAYAKOREYA
-SEYSHLL
-SENP'ER I MIKELON
-SENEGAL
-SENT KITS I NEVIS
-SENTVINSENT I GRENADIN
-SERBIYA
-SINGAPUR
-SIRIYA
-SLOVAKIYA
-SLOVENIYA
-SOLOMONOV OVA
-SOMALI
-SUDAN
-SURINAM
-S'ERRALEONE
-TADZHKISTAN
-TAYVAN'
-TAILAND
-TANZANIYA
-TOGO
-TOKELAU OVA
-TONGA
-TRINIDAD I TOBAGO
-TUVALU
-TUNIS
-TURKMENISTAN
-TURKS I KEYKOS
-TURTSYA
-UGANDA
-UZBEKISTAN
-URUGVAY
-FARERSKIE OVA
-FIDZH
-FILIPPIN
-FINLYADIYA
-FRANTSYA
-FRANTSZSKAYAGVINEYA
-FRANTSZSKAYAPOLINEZIYA
-KHORVATIYA
-CHD
-CHRNOGORIYA
-CHKHIYA
-CHLI
-SHEYTSRIYA
-SHETSYA
-SHILANKA
-EKVADOR
-EKVATORIAL'NAYAGVINEYA
-ERITREYA
-ESTONIYA
-EFIOPIYA
-YUR
-YUNAYAKOREYA
-YUNAYAOSETIYA
-YAAYKA
-YAONIYA
+Rossiâ
+Ukraina
+Abhaziâ
+Avstraliâ
+Avstriâ
+Azerbajdžan
+Albaniâ
+Alžir
+Angola
+Anguilʹâ
+Andorra
+Antigua i Barbuda
+Antilʹskie o-va
+Argentina
+Armeniâ
+Arulʹko
+Afganistan
+Bagamskie o-va
+Bangladeš
+Barbados
+Bahrejn
+Belarusʹ
+Beliz
+Belʹgiâ
+Benin
+Bermudy
+Bolgariâ
+Boliviâ
+Bosniâ/Gercegovina
+Botsvana
+Braziliâ
+Britanskie Virginskie o-va
+Brunej
+Burkina Faso
+Burundi
+Butan
+Vallis i Futuna o-va
+Vanuatu
+Velikobritaniâ
+Vengriâ
+Venesuéla
+Vostočnyj Timor
+Vʹetnam
+Gabon
+Gaiti
+Gajana
+Gambiâ
+Gana
+Gvadelupa
+Gvatemala
+Gvineâ
+Gvineâ-Bisau
+Germaniâ
+Gernsi o-v
+Gibraltar
+Gonduras
+Gonkong
+Grenada
+Grenlandiâ
+Greciâ
+Gruziâ
+Daniâ
+Džersi o-v
+Džibuti
+Dominikanskaâ respublika
+Egipet
+Zambiâ
+Zapadnaâ Sahara
+Zimbabve
+Izrailʹ
+Indiâ
+Indoneziâ
+Iordaniâ
+Irak
+Iran
+Irlandiâ
+Islandiâ
+Ispaniâ
+Italiâ
+Jemen
+Kabo-Verde
+Kazahstan
+Kambodža
+Kamerun
+Kanada
+Katar
+Keniâ
+Kipr
+Kiribati
+Kitaj
+Kolumbiâ
+Komorskie o-va
+Kongo (Brazzaville)
+Kongo (Kinshasa)
+Kosta-Rika
+Kot-d''Ivuar
+Kuba
+Kuvejt
+Kuka o-va
+Kyrgyzstan
+Laos
+Latviâ
+Lesoto
+Liberiâ
+Livan
+Liviâ
+Litva
+Lihtenštejn
+Lûksemburg
+Mavrikij
+Mavritaniâ
+Madagaskar
+Makedoniâ
+Malavi
+Malajziâ
+Mali
+Malʹdivskie o-va
+Malʹta
+Martinika o-v
+Meksika
+Mozambik
+Moldova
+Monako
+Mongoliâ
+Marokko
+Mʹânma (Birma)
+Mén o-v
+Namibiâ
+Nauru
+Nepal
+Niger
+Nigeriâ
+Niderlandy (Gollandiâ)
+Nikaragua
+Novaâ Zelandiâ
+Novaâ Kaledoniâ o-v
+Norvegiâ
+Norfolk o-v
+O.A.É.
+Oman
+Pakistan
+Panama
+Papua Novaâ Gvineâ
+Paragvaj
+Peru
+Pitkérn o-v
+Polʹša
+Portugaliâ
+Puérto Riko
+Reûnʹon
+Ruanda
+Rumyniâ
+SŠA
+Salʹvador
+Samoa
+San-Marino
+San-Tome i Prinsipi
+Saudovskaâ Araviâ
+Svazilend
+Svâtaâ Lûsiâ
+Svâtoj Eleny o-v
+Severnaâ Koreâ
+Sejšelly
+Sen-Pʹer i Mikelon
+Senegal
+Sent Kits i Nevis
+Sent-Vinsent i Grenadiny
+Serbiâ
+Singapur
+Siriâ
+Slovakiâ
+Sloveniâ
+Solomonovy o-va
+Somali
+Sudan
+Surinam
+Sʹerra-Leone
+Tadžikistan
+Tajvanʹ
+Tailand
+Tanzaniâ
+Togo
+Tokelau o-va
+Tonga
+Trinidad i Tobago
+Tuvalu
+Tunis
+Turkmenistan
+Turks i Kejkos
+Turciâ
+Uganda
+Uzbekistan
+Urugvaj
+Farerskie o-va
+Fidži
+Filippiny
+Finlândiâ
+Franciâ
+Francuzskaâ Gvineâ
+Francuzskaâ Polineziâ
+Horvatiâ
+Čad
+Černogoriâ
+Čehiâ
+Čili
+Švejcariâ
+Šveciâ
+Šri-Lanka
+Ékvador
+Ékvatorialʹnaâ Gvineâ
+Éritreâ
+Éstoniâ
+Éfiopiâ
+ÛAR
+Ûžnaâ Koreâ
+Ûžnaâ Osetiâ
+Âmajka
+Âponiâ

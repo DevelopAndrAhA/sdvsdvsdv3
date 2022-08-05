@@ -88,7 +88,6 @@ public class AlohaDb extends SQLiteOpenHelper {
     }
 
     public List<Region> getRegions(int country_id) {
-        Log.e("getRegions",country_id+"");
         List<Region> list = new ArrayList<Region>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query("region", new String[] { "id","name" }, "country_id" + "=?", new String[] { String.valueOf(country_id) }, null, null, null, null);
@@ -113,7 +112,6 @@ public class AlohaDb extends SQLiteOpenHelper {
                 city.setId(cursor.getInt(0));
                 city.setName(cursor.getString(1));
                 list.add(city);
-                Log.e("getCities",city.toString());
                 cursor.moveToNext();
             }
         }
@@ -121,16 +119,18 @@ public class AlohaDb extends SQLiteOpenHelper {
     }
 
     public Country getCountry(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query("country", new String[] { "id","name" }, "id" + "=?",
-                new String[] { String.valueOf(id) }, null, null, null, null);
-        if (cursor != null)
-            cursor.moveToFirst();
-        Country country = new Country();
-        country.setId(cursor.getInt(0));
-        country.setName(cursor.getString(1));
-        // return contact
-        return country;
+        try{
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = db.query("country", new String[] { "id","name" }, "id" + "=?",
+                    new String[] { String.valueOf(id) }, null, null, null, null);
+            if (cursor != null)
+                cursor.moveToFirst();
+            Country country = new Country();
+            country.setId(cursor.getInt(0));
+            country.setName(cursor.getString(1));
+            return country;
+        }catch (Exception e){}
+        return null;
     }
 
 }

@@ -90,11 +90,12 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         Mapbox.getInstance(this, "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
 
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
+        int langTmp = mSettings.getInt(conf.getLANG(),0);
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_main);
 
@@ -138,8 +139,14 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                         return false;
                     }
                 });
+                if(langTmp==0){
+                    showAlertDialog(mapboxMap);
+                }else{
+                    cityChanged(mapboxMap);
+                }
 
-                simpleSample(mapboxMap);
+
+
             }
         });
 
@@ -192,10 +199,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 startActivity(intent );
             }
         });
-        int langTmp = mSettings.getInt(conf.getLANG(),0);
-        if(langTmp==0){
-            showAlertDialog();
-        }
+
 
 
 
@@ -220,12 +224,13 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             new GetDataWithoutMap().execute();
         });
 
-        showCountryAlert();
     }
-    private void simpleSample(MapboxMap mapboxMap) {
+    private void cityChanged(MapboxMap mapboxMap) {
+        String city = mSettings.getString("city","");
+        Log.e("CITY",city);
         Geocoder gc = new Geocoder(this);
         try {
-            List<Address> list= gc.getFromLocationName("AZERBAYDZHN",1);
+            List<Address> list= gc.getFromLocationName(city,1);
             Address address = list.get(0);
             Log.e("address",address.toString());
             if(address!=null){
@@ -236,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 location.setLongitude(lng);
                 CameraPosition cameraPosition = new CameraPosition.Builder()
                         .target(new LatLng(lat, lng))
-                        .zoom(20)
+                        .zoom(15)
                         .bearing(90)
                         .tilt(40)
                         .build();
@@ -248,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
     AlertDialog alert = null;
-    private void showAlertDialog() {
+    private void showAlertDialog(MapboxMap mapboxMap) {
         final int[] lang = {0};
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
 
@@ -278,6 +283,14 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                if( lang[0] == 0){
                    editor.putInt(conf.getLANG(),1);
                    editor.apply();
+
+                   String city = mSettings.getString("city","");
+                   if(city.equals("")){
+                       showCountryAlert(mapboxMap);
+                   }else{
+                       cityChanged(mapboxMap);
+                   }
+
                    Toast.makeText(MainActivity.this, "В сервисе язык поменяется при след.запуске приложения", Toast.LENGTH_SHORT).show();
                };
                 alert.dismiss();
@@ -286,6 +299,9 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         alert = alertDialog.create();
         alert.setCanceledOnTouchOutside(false);
         alert.show();
+
+
+
     }
     @Override
     protected void onStart() {
@@ -530,7 +546,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     }
 
 
-    public void showCountryAlert(){
+    public void showCountryAlert(MapboxMap mapboxMap){
         AlohaDb alohaDb = new AlohaDb(MainActivity.this);
         SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
         alohaDb.iniDb(sqLiteDatabase);
@@ -539,7 +555,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
         builderSingle.setIcon(R.drawable.location_icon);
-        builderSingle.setTitle("Select One Name:-");
+        builderSingle.setTitle(array[27]);
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
         for(int i=0;i<list.size();i++){
@@ -548,6 +564,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                Log.e("Country",list.get(which).toString());
                 List<Region> regions = alohaDb.getRegions(which);
                 final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
                 for(int i=0;i<regions.size();i++){
@@ -559,17 +576,22 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        List<City> cities = alohaDb.getCities(i);
+                        Log.e("REGION",regions.get(i).toString());
+                        List<City> cities = alohaDb.getCities(regions.get(i).getId());
                         final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
-                        for(int k=0;i<cities.size();k++){
+                        for(int k=0;k<cities.size();k++){
                             arrayCity.add(cities.get(k).getName());
                         }
 
                         AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(MainActivity.this);
                         builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
+                            public void onClick(DialogInterface dialogInterface, int c) {
+                                editor.putString("city",arrayCity.getItem(c));
+                                editor.apply();
+                                cityChanged(mapboxMap);
                                 dialog.dismiss();
+                                Toast.makeText(MainActivity.this,array[19],Toast.LENGTH_LONG).show();
                             }
                         });
                         builderInnerCity.show();
