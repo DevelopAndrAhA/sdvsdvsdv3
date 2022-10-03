@@ -1,6 +1,7 @@
 package com.humdet;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -12,9 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
@@ -29,14 +28,19 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.humdet.db.AlohaDb;
 import com.humdet.db.City;
 import com.humdet.db.Country;
@@ -62,20 +66,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-/*import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;*/
-
-/*import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;*/
 
 public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMarkerClickListener , LocationListener {
     int REQUEST_OVERLAY_PERMISSION=1000;
@@ -99,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_main);
 
-        m_mapView = (MapView) findViewById(R.id.mapView);
+        m_mapView =  findViewById(R.id.mapView);
         //m_mapView.getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS);
 
 
@@ -111,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION);
             }
         }
+
+
 
         per.getMyApplicationPermissions();
         m_mapView.onCreate(savedInstanceState);
@@ -151,11 +147,12 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         });
 
 
-        /*Intent intent = new Intent(MainActivity.this,MyService.class);
-        startService(intent);*/
+
+
         getSupportActionBar().hide();
 
         int lang = mSettings.getInt(conf.getLANG(),1);
+        city_id = mSettings.getInt("city_id",0);
         if(lang==conf.getRU()){
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
@@ -203,16 +200,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
 
-        /*MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-                Toast.makeText(MainActivity.this, "onInitializationComplete", Toast.LENGTH_SHORT).show();
-            }
-        });
 
-        AdView adView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);*/
         ImageButton settings_btn = findViewById(R.id.settings_btn);
         ImageButton img_activity = findViewById(R.id.img_activity);
         settings_btn.setOnClickListener(e -> {
@@ -223,16 +211,36 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         img_activity.setOnClickListener(e -> {
             new GetDataWithoutMap().execute();
         });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(Settings.canDrawOverlays(this)){
+                Intent intentService = new Intent(MainActivity.this,MyService.class);
+                startService(intentService);
+            }else{
+                Toast.makeText(MainActivity.this,array[30],Toast.LENGTH_LONG).show();
+            }
+        }
 
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(Settings.canDrawOverlays(this)){
+                Intent intentService = new Intent(MainActivity.this,MyService.class);
+                startService(intentService);
+            }else{
+                Toast.makeText(MainActivity.this,array[30],Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     private void cityChanged(MapboxMap mapboxMap) {
         String city = mSettings.getString("city","");
-        Log.e("CITY",city);
         Geocoder gc = new Geocoder(this);
         try {
             List<Address> list= gc.getFromLocationName(city,1);
             Address address = list.get(0);
-            Log.e("address",address.toString());
             if(address!=null){
                 lat=address.getLatitude();
                 lng=address.getLongitude();
@@ -245,7 +253,9 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                         .bearing(90)
                         .tilt(40)
                         .build();
-                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                if(mapboxMap!=null){
+                    mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                }
             }
         } catch (Exception e) { }
     }
@@ -280,19 +290,21 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         alertDialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-               if( lang[0] == 0){
-                   editor.putInt(conf.getLANG(),1);
-                   editor.apply();
-
-                   String city = mSettings.getString("city","");
-                   if(city.equals("")){
-                       showCountryAlert(mapboxMap);
-                   }else{
-                       cityChanged(mapboxMap);
-                   }
-
-                   Toast.makeText(MainActivity.this, "В сервисе язык поменяется при след.запуске приложения", Toast.LENGTH_SHORT).show();
-               };
+                if(lang[0]==2){
+                    editor.putInt(conf.getLANG(),2);
+                    editor.apply();
+                }else{
+                    editor.putInt(conf.getLANG(),1);
+                    editor.apply();
+                }
+                Toast.makeText(MainActivity.this, array[32], Toast.LENGTH_SHORT).show();
+                String city = mSettings.getString("city","");
+                Log.e("setPositiveButton",city);
+                if(city.equals("")){
+                    showCountryAlert(mapboxMap);
+                }else{
+                    cityChanged(mapboxMap);
+                }
                 alert.dismiss();
             }
         });
@@ -301,13 +313,13 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         alert.show();
 
 
-
     }
     @Override
     protected void onStart() {
         super.onStart();
         if (m_mapView != null) {
             m_mapView.onStart();
+            cityChanged(m_map);
         }
     }
 
@@ -366,8 +378,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     }
 
     LocationManager locationManager = null;
-    //double lat=42.876096,lng=74.614617;//цум
-    //double lat=42.877107,lng=74.578294;//юр
     double lat=0,lng=0;
 
 
@@ -394,7 +404,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         protected void onPreExecute() {
             super.onPreExecute();
             bmps = new Bitmap[humDataList.size()];
-            SaveNewFace.flagShotAndSave=false;
         }
         @Override
         protected Void doInBackground(Void... voids) {
@@ -425,7 +434,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                     m_map.addMarker(new MarkerOptions().setPosition(new LatLng(humDataList.get(i).getLat(), humDataList.get(i).getLng())).setTitle(humDataList.get(i).getDate()).setIcon(paellaIcon));
                 }catch (Exception e){}
             }
-            SaveNewFace.flagShotAndSave=true;
         }
     }
 
@@ -545,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         return false;
     }
 
-
+    int city_id = 0;
     public void showCountryAlert(MapboxMap mapboxMap){
         AlohaDb alohaDb = new AlohaDb(MainActivity.this);
         SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
@@ -564,7 +572,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Log.e("Country",list.get(which).toString());
                 List<Region> regions = alohaDb.getRegions(which);
                 final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
                 for(int i=0;i<regions.size();i++){
@@ -576,7 +583,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        Log.e("REGION",regions.get(i).toString());
                         List<City> cities = alohaDb.getCities(regions.get(i).getId());
                         final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
                         for(int k=0;k<cities.size();k++){
@@ -588,7 +594,10 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                             @Override
                             public void onClick(DialogInterface dialogInterface, int c) {
                                 editor.putString("city",arrayCity.getItem(c));
+                                editor.putInt("city_id",cities.get(c).getId());
                                 editor.apply();
+                                city_id = cities.get(c).getId();
+                                Log.e("city_id",city_id+"");
                                 cityChanged(mapboxMap);
                                 dialog.dismiss();
                                 Toast.makeText(MainActivity.this,array[19],Toast.LENGTH_LONG).show();

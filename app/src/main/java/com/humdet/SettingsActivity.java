@@ -35,6 +35,7 @@ public class SettingsActivity extends AppCompatActivity {
     SharedPreferences.Editor editor;
     Spinner spinner = null;
     TextView cityName;
+    int city_id = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +56,8 @@ public class SettingsActivity extends AppCompatActivity {
         checkBox.setChecked(true);
         if(mSettings.getBoolean("save_photo",false)){
             checkBox.setChecked(true);
+        }else{
+            checkBox.setChecked(false);
         }
         TextView textView3 = findViewById(R.id.textView3);
         TextView textView4 = findViewById(R.id.textView4);
@@ -66,6 +69,7 @@ public class SettingsActivity extends AppCompatActivity {
         button.setText(array[18]);
         button4.setText(array[28]);
         cityName.setText(mSettings.getString("city",""));
+        city_id = mSettings.getInt("city_id",0);
         button.setOnClickListener(e -> {
             if(checkBox.isChecked()){
                 editor.putBoolean("save_photo",true);
@@ -79,6 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
                 editor.putInt(conf.getLANG(),1);
             }
             editor.putString("city",cityName.getText().toString());
+            editor.putInt("city_id",city_id);
             editor.apply();
             Toast.makeText(SettingsActivity.this,array[19],Toast.LENGTH_SHORT).show();
         });
@@ -149,6 +154,9 @@ public class SettingsActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialogInterface, int c) {
                                 dialog.dismiss();
                                 cityName.setText(arrayCity.getItem(c));
+                                cityName.setText(arrayCity.getItem(c));
+                                city_id = cities.get(c).getId();
+                                Log.e("city_id :","ID :"+city_id);
                             }
                         });
                         builderInnerCity.show();

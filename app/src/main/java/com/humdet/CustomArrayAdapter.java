@@ -170,7 +170,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         return v;
 
     }
-    private static class ViewHolder {
+    private class ViewHolder {
         private ImageView imageView2;
         private ImageView imageView3;
         private ImageView imageView4;

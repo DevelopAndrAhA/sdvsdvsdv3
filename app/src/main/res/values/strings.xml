@@ -29,7 +29,7 @@
         <item>Data not found, try changing the date</item>
         <item>Photo uploaded</item>
         <item>Error</item>
-        <item>No matches (try changing the date)</item>
+        <item>No matches (try changing the date or city)</item>
         <item>Store the photos you take on your phone</item>
         <item>Save</item>
         <item>Saved</item>
@@ -43,6 +43,10 @@
         <item>Select address</item>
         <item>Change address</item>
         <item>Current  address</item>
+        <item>You need to give the app permission to "On top of other" apps</item>
+        <item>The shoot place</item>
+        <item>In the service, the language changes the next time the application is started</item>
+        <item>Search by city</item>
     </string-array>
     <string-array name="app_lang_ru">
         <item>Скрыть</item>
@@ -61,7 +65,7 @@
         <item>Данные не найдены ,попробуйте изменить дату</item>
         <item>Фото загружено</item>
         <item>Ошибка</item>
-        <item>Нет совпадений(попробуйте изменить дату)</item>
+        <item>Нет совпадений(попробуйте изменить дату или город)</item>
         <item>Хранить снимки на телефоне</item>
         <item>Сохранить</item>
         <item>Сохранено</item>
@@ -75,6 +79,10 @@
         <item>Выбрать адрес</item>
         <item>Сменить адрес</item>
         <item>Текущий адрес</item>
+        <item>Нужно дать приложению разрешение на "Поверх других" приложений</item>
+        <item>Место съемки</item>
+        <item>В сервисе язык меняется при след.запуске приложения</item>
+        <item>Поиск по городу</item>
     </string-array>
 
 

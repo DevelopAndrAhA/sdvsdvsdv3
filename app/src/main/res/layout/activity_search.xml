@@ -11,13 +11,36 @@
         android:layout_height="match_parent">
 
 
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingTop="15dp"
             android:gravity="center"
             android:orientation="vertical">
+            <!-- <com.google.android.gms.ads.AdView
+                         xmlns:ads="http://schemas.android.com/apk/res-auto"
+                         android:id="@+id/adView"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:layout_centerHorizontal="true"
+                         android:layout_alignParentBottom="true"
+                         ads:adSize="BANNER"
+                         ads:adUnitId="ca-app-pub-6491483931480160/9778658493">
+                     </com.google.android.gms.ads.AdView>
+                     Мой баннер
+                     -->
 
+            <com.google.android.gms.ads.AdView
+                xmlns:ads="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true"
+                ads:adSize="BANNER"
+                ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
+            </com.google.android.gms.ads.AdView>
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"
@@ -39,6 +62,15 @@
                 android:editable="false"
                 android:ems="10"
                 android:inputType="date" />
+
+            <EditText
+                android:id="@+id/editTextCity"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:editable="false"
+                android:text="TextView"
+                android:textAlignment="center" />
 
             <Button
                 android:id="@+id/button"

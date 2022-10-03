@@ -3,11 +3,14 @@ package com.humdet;
 import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
@@ -18,19 +21,31 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.google.mlkit.vision.face.Face;
+import com.humdet.db.AlohaDb;
+import com.humdet.db.City;
+import com.humdet.db.Country;
+import com.humdet.db.Region;
 import com.humdet.tflite.SimilarityClassifier;
 import com.humdet.tflite.TFLiteObjectDetectionAPIModel;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -55,7 +70,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     final int Pic_image=299;
     private String [] array;
     Conf conf = new Conf();
-
+    int city_id = 0;
     SharedPreferences mSettings;
     SharedPreferences.Editor editor;
     Button buttonSearch = null;
@@ -111,6 +126,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
 
 
         int lang = mSettings.getInt(conf.getLANG(),0);
+        city_id = mSettings.getInt("city_id",0);
         if(lang==conf.getRU()){
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
@@ -121,7 +137,18 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
 
         getSupportActionBar().setTitle(array[2]);
         Button button = findViewById(R.id.button);
+        EditText cityText = findViewById(R.id.editTextCity);
         button.setText(array[3]);
+        cityText.setText(array[33]+" : "+mSettings.getString("city",""));
+        cityText.setFocusable(false);
+        cityText.setFocusableInTouchMode(false);
+        cityText.setClickable(true);
+        cityText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showCountryAlert(cityText);
+            }
+        });
         ImageView imageView = findViewById(R.id.imageView);
         bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.hum_icon);
         imageView.setImageBitmap(bitmap);
@@ -181,6 +208,19 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+
+        AdView mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+
     }
     @Override
     public boolean onSupportNavigateUp() {
@@ -304,7 +344,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             //byte[] cropByteArray = stream.toByteArray();
             OkHttpClient client = new OkHttpClient();
             try {
-                String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0";
+                String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0&city_id="+city_id;
                 Log.e("url",url);
                 com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
                         .url(conf.getDomen()+ url)
@@ -341,5 +381,59 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     protected void onDestroy() {
         super.onDestroy();
         finish();
+    }
+    public void showCountryAlert(EditText cityText){
+        AlohaDb alohaDb = new AlohaDb(SearchActivity.this);
+        SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
+        alohaDb.iniDb(sqLiteDatabase);
+        List<Country> list = alohaDb.getAllCountry();
+
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(SearchActivity.this);
+        builderSingle.setIcon(R.drawable.location_icon);
+        builderSingle.setTitle(array[27]);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(SearchActivity.this, android.R.layout.select_dialog_singlechoice);
+        for(int i=0;i<list.size();i++){
+            arrayAdapter.add(list.get(i).getName());
+        }
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Region> regions = alohaDb.getRegions(which);
+                final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(SearchActivity.this, android.R.layout.select_dialog_singlechoice);
+                for(int i=0;i<regions.size();i++){
+                    arrayAdapterReg.add(regions.get(i).getName());
+                }
+
+
+                AlertDialog.Builder builderInnerRegion = new AlertDialog.Builder(SearchActivity.this);
+                builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        List<City> cities = alohaDb.getCities(regions.get(i).getId());
+                        final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(SearchActivity.this, android.R.layout.select_dialog_singlechoice);
+                        for(int k=0;k<cities.size();k++){
+                            arrayCity.add(cities.get(k).getName());
+                        }
+
+                        AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(SearchActivity.this);
+                        builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int c) {
+                                city_id = cities.get(c).getId();
+                                cityText.setText(array[33]+" : "+cities.get(c).getName());
+                                dialog.dismiss();
+                                Log.e("CITYID",city_id+"");
+                                Toast.makeText(SearchActivity.this,array[19],Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        builderInnerCity.show();
+                    }
+                });
+                builderInnerRegion.show();
+            }
+        });
+        builderSingle.show();
     }
 }

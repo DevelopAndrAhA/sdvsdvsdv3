@@ -99,7 +99,8 @@ public class DetailActivity extends AppCompatActivity {
                 Icon paellaIcon = IconFactory.getInstance(DetailActivity.this).defaultMarker();
                 //Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bmp)
                 try{
-                    mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(jsonObject.getDouble("lat"), jsonObject.getDouble("lng"))).setTitle("").setIcon(paellaIcon)).setTitle("Место съемки");
+                    mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(jsonObject.getDouble("lat"), jsonObject.getDouble("lng"))).setTitle("").setIcon(paellaIcon))
+                            .setTitle(array[31]);
 
                     mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(jsonObject.getDouble("lat"), jsonObject.getDouble("lng")), 13));
 

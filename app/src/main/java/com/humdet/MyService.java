@@ -146,7 +146,7 @@ public class MyService extends Service {
     private HandlerThread backgroundThread;
     private String[] array;
     Conf conf = new Conf();
-    double lat=42.877107,lng=74.578294;
+    double lat=0,lng=0;
     SaveNewFace saveNewFace = null;
     public MyService() {
 
@@ -264,7 +264,6 @@ public class MyService extends Service {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.e("latituda","onLocationChanged");
                 if(location!=null){
                     lat = location.getLatitude();
                     lng = location.getLongitude();
@@ -333,8 +332,10 @@ public class MyService extends Service {
 
         @Override
         public void onError(CameraDevice camera, int error) {
-            cameraDevice.close();
-            cameraDevice = null;
+            try{
+                cameraDevice.close();
+                cameraDevice = null;
+            }catch (Exception e){}
         }
     };
 
@@ -727,6 +728,7 @@ public class MyService extends Service {
                                     saveNewFace.setLng(lng);
                                 }catch (Exception e){}
                                 saveNewFace.setUsername(currTimestamp+"");
+                                saveNewFace.setTitle(currTimestamp+"");
                                 float mas[][] = (float[][]) finalRec.getExtra();
                                 String masToSend = "";
                                 for(int i=0;i<mas[0].length;i++){
