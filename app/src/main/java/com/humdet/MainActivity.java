@@ -157,6 +157,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
             array = getResources().getStringArray(R.array.app_lang_en);
+        }else{
+            array = getResources().getStringArray(R.array.app_lang_ru);
         }/*else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
         }*/
@@ -219,7 +221,15 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 Toast.makeText(MainActivity.this,array[30],Toast.LENGTH_LONG).show();
             }
         }
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
 
+        AdView mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     @Override

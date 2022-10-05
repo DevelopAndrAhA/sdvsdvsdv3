@@ -2,8 +2,10 @@ package com.humdet;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -11,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 
+import com.jsibbold.zoomage.ZoomageView;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -19,6 +22,7 @@ import org.json.JSONObject;
 import java.util.List;
 
 import androidx.annotation.ColorRes;
+import androidx.appcompat.app.AlertDialog;
 
 public class CustomArrayAdapter extends BaseAdapter{
     private LayoutInflater inflater;
@@ -55,9 +59,9 @@ public class CustomArrayAdapter extends BaseAdapter{
         if ( v == null){
             holder = new ViewHolder();
             v = inflater.inflate(R.layout.custom_list, parent, false);
-            holder.imageView2 = (ImageView) v.findViewById(R.id.imageView2);
-            holder.imageView3 = (ImageView) v.findViewById(R.id.imageView3);
-            holder.imageView4 = (ImageView) v.findViewById(R.id.imageView4);
+            holder.imageView2 = (ZoomageView) v.findViewById(R.id.imageView2);
+            holder.imageView3 = (ZoomageView) v.findViewById(R.id.imageView3);
+            holder.imageView4 = (ZoomageView) v.findViewById(R.id.imageView4);
             holder.progressBar1 = (ProgressBar) v.findViewById(R.id.progressBar1);
             holder.progressBar2 = (ProgressBar) v.findViewById(R.id.progressBar2);
             holder.progressBar3 = (ProgressBar) v.findViewById(R.id.progressBar3);
@@ -72,6 +76,7 @@ public class CustomArrayAdapter extends BaseAdapter{
                 context.startActivity(intent);
             }
         });
+
 
         if(jsonObjects.get(position)[1]!=null){
             try{
@@ -171,9 +176,9 @@ public class CustomArrayAdapter extends BaseAdapter{
 
     }
     private class ViewHolder {
-        private ImageView imageView2;
-        private ImageView imageView3;
-        private ImageView imageView4;
+        private com.jsibbold.zoomage.ZoomageView imageView2;
+        private com.jsibbold.zoomage.ZoomageView imageView3;
+        private com.jsibbold.zoomage.ZoomageView imageView4;
         private ProgressBar progressBar1;
         private ProgressBar progressBar2;
         private ProgressBar progressBar3;
@@ -187,4 +192,8 @@ public class CustomArrayAdapter extends BaseAdapter{
     public int color(@ColorRes int resId) {
         return context.getResources().getColor(resId);
     }
+
+
+
+
 }

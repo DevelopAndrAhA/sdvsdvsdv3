@@ -17,10 +17,18 @@
             android:layout_margin="1dp"
             android:layout_weight="1">
 
-            <ImageView
+            <com.jsibbold.zoomage.ZoomageView
                 android:id="@+id/imageView2"
                 android:layout_width="150dp"
                 android:layout_height="100dp"
+                app:zoomage_animateOnReset="true"
+                app:zoomage_autoCenter="true"
+                app:zoomage_autoResetMode="UNDER"
+                app:zoomage_maxScale="8"
+                app:zoomage_minScale="0.6"
+                app:zoomage_restrictBounds="true"
+                app:zoomage_translatable="true"
+                app:zoomage_zoomable="true"
                 android:layout_gravity="center"
                 tools:srcCompat="@tools:sample/avatars" />
 
@@ -37,10 +45,18 @@
             android:layout_margin="1dp"
             android:layout_weight="1">
 
-            <ImageView
+            <com.jsibbold.zoomage.ZoomageView
                 android:id="@+id/imageView3"
                 android:layout_width="150dp"
                 android:layout_height="100dp"
+                app:zoomage_animateOnReset="true"
+                app:zoomage_autoCenter="true"
+                app:zoomage_autoResetMode="UNDER"
+                app:zoomage_maxScale="8"
+                app:zoomage_minScale="0.6"
+                app:zoomage_restrictBounds="true"
+                app:zoomage_translatable="true"
+                app:zoomage_zoomable="true"
                 android:layout_gravity="center"
                 tools:srcCompat="@tools:sample/avatars" />
 
@@ -57,10 +73,18 @@
             android:layout_margin="1dp"
             android:layout_weight="1">
 
-            <ImageView
+            <com.jsibbold.zoomage.ZoomageView
                 android:id="@+id/imageView4"
                 android:layout_width="150dp"
                 android:layout_height="100dp"
+                app:zoomage_animateOnReset="true"
+                app:zoomage_autoCenter="true"
+                app:zoomage_autoResetMode="UNDER"
+                app:zoomage_maxScale="8"
+                app:zoomage_minScale="0.6"
+                app:zoomage_restrictBounds="true"
+                app:zoomage_translatable="true"
+                app:zoomage_zoomable="true"
                 android:layout_gravity="center"
                 tools:srcCompat="@tools:sample/avatars" />
 
