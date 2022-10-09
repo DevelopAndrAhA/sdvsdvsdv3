@@ -46,9 +46,9 @@ public class SettingsActivity extends AppCompatActivity {
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
             array = getResources().getStringArray(R.array.app_lang_en);
-        }/*else if(lang==conf.getAR()){
+        }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
-        }*/
+        }
         setContentView(R.layout.activity_settings);
         getSupportActionBar().setTitle(array[21]);
         CheckBox checkBox = findViewById(R.id.checkBox);

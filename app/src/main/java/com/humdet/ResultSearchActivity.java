@@ -34,7 +34,9 @@ public class ResultSearchActivity extends AppCompatActivity {
         String custom_font = "fonts/JackportRegularNcv.ttf";
         Typeface CF = Typeface.createFromAsset(getAssets(), custom_font);
         TextView textView = findViewById(R.id.textView2);
+        TextView textView3 = findViewById(R.id.textView3);
         textView.setTypeface(CF);
+        textView3.setTypeface(CF);
 
 
         int lang = mSettings.getInt(conf.getLANG(),0);
@@ -42,15 +44,16 @@ public class ResultSearchActivity extends AppCompatActivity {
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
             array = getResources().getStringArray(R.array.app_lang_en);
-        }/*else if(lang==conf.getAR()){
+        }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
-        }*/
+        }
         boolean main = getIntent().getBooleanExtra("main",false);
         if(main){
             textView.setText(array[22]);//metka 2
             getSupportActionBar().setTitle("");
         }else{
             textView.setText(array[16]);
+            textView3.setText(array[34]);
             getSupportActionBar().setTitle(array[7]);
         }
 

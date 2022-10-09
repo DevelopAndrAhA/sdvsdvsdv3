@@ -10,15 +10,20 @@
         android:layout_width="409dp"
         android:layout_height="729dp"
         android:orientation="vertical"
-        android:paddingTop="2dp"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="1dp">
+        android:paddingTop="2dp">
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
+            android:textAlignment="center"
+            android:textSize="34sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textAlignment="center"
             android:textSize="34sp"
             android:visibility="gone" />

@@ -9,6 +9,7 @@
     <string-array name="languages">
         <item>Русский</item>
         <item>English</item>
+        <item>Arabic</item>
     </string-array>
 
 
@@ -29,7 +30,7 @@
         <item>Data not found, try changing the date</item>
         <item>Photo uploaded</item>
         <item>Error</item>
-        <item>No matches (try changing the date or city)</item>
+        <item>No matches</item>
         <item>Store the photos you take on your phone</item>
         <item>Save</item>
         <item>Saved</item>
@@ -47,6 +48,7 @@
         <item>The shoot place</item>
         <item>In the service, the language changes the next time the application is started</item>
         <item>Search by city</item>
+        <item>(try changing the date or city)</item>
     </string-array>
     <string-array name="app_lang_ru">
         <item>Скрыть</item>
@@ -65,7 +67,7 @@
         <item>Данные не найдены ,попробуйте изменить дату</item>
         <item>Фото загружено</item>
         <item>Ошибка</item>
-        <item>Нет совпадений(попробуйте изменить дату или город)</item>
+        <item>Нет совпадений</item>
         <item>Хранить снимки на телефоне</item>
         <item>Сохранить</item>
         <item>Сохранено</item>
@@ -83,8 +85,45 @@
         <item>Место съемки</item>
         <item>В сервисе язык меняется при след.запуске приложения</item>
         <item>Поиск по городу</item>
+        <item>(попробуйте изменить дату или город)</item>
     </string-array>
-
+    <string-array name="app_lang_ar">
+        <item>sdvdv</item>
+        <item>dsvdsv</item>
+        <item>sdvsdv</item>
+        <item>sdvsdvsd</item>
+        <item>dvsdv</item>
+        <item>dvsdvdv</item>
+        <item>На фото лицо не обнаружено, повторите еще раз выбрать фото</item>
+        <item>Результат поиска</item>
+        <item>Сходство</item>
+        <item>Дата съемки</item>
+        <item>Инфо</item>
+        <item>Добавить фото из галереи</item>
+        <item>Загрузить</item>
+        <item>Данные не найдены ,попробуйте изменить дату</item>
+        <item>Фото загружено</item>
+        <item>Ошибка</item>
+        <item>Нет совпадений</item>
+        <item>Хранить снимки на телефоне</item>
+        <item>Сохранить</item>
+        <item>Сохранено</item>
+        <item>Снимок сохранен</item>
+        <item>Настройки</item>
+        <item>Пока нет фотографий</item>
+        <item>Последние фото</item>
+        <item>Язык</item>
+        <item>Пинг(местонахождение человека в данный момент)</item>
+        <item>В стадии тестирования</item>
+        <item>Выбрать адрес</item>
+        <item>Сменить адрес</item>
+        <item>Текущий адрес</item>
+        <item>Нужно дать приложению разрешение на "Поверх других" приложений</item>
+        <item>Место съемки</item>
+        <item>В сервисе язык меняется при след.запуске приложения</item>
+        <item>Поиск по городу</item>
+        <item>попробуйте изменить дату</item>
+    </string-array>
 
 
 

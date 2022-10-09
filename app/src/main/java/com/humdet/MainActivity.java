@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     private String [] array;
     Conf conf = new Conf();
     JSONArray humPhotos;
+    Button searchBtn = null;
+    Button trainBtn = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -157,11 +159,43 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
             array = getResources().getStringArray(R.array.app_lang_en);
+        }else if(lang==conf.getAR()){
+            array = getResources().getStringArray(R.array.app_lang_ar);
         }else{
             array = getResources().getStringArray(R.array.app_lang_ru);
-        }/*else if(lang==conf.getAR()){
-            array = getResources().getStringArray(R.array.app_lang_ar);
-        }*/
+        }
+
+        searchBtn = findViewById(R.id.button3);
+        trainBtn = findViewById(R.id.button4);
+        searchBtn.setText(array[2]);
+        trainBtn.setText(array[11]);
+
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),SearchActivity.class);
+                startActivity(intent );
+            }
+        });
+        trainBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),NeuroTrainingActivity.class);
+                startActivity(intent );
+            }
+        });
+
+        ImageButton settings_btn = findViewById(R.id.settings_btn);
+        ImageButton img_activity = findViewById(R.id.img_activity);
+        settings_btn.setOnClickListener(e -> {
+            Intent intent2 = new Intent(this,SettingsActivity.class);
+            startActivity(intent2);
+        });
+
+        img_activity.setOnClickListener(e -> {
+            new GetDataWithoutMap().execute();
+        });
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -178,41 +212,15 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             onLocationChanged(networkLoc);
         }
 
-        
+
         new GetData().execute();
-        Button button3 = findViewById(R.id.button3);
-        Button button4 = findViewById(R.id.button4);
-        button3.setText(array[2]);
-        button4.setText(array[11]);
-        button3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),SearchActivity.class);
-                startActivity(intent );
-            }
-        });
-        button4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),NeuroTrainingActivity.class);
-                startActivity(intent );
-            }
-        });
 
 
 
 
 
-        ImageButton settings_btn = findViewById(R.id.settings_btn);
-        ImageButton img_activity = findViewById(R.id.img_activity);
-        settings_btn.setOnClickListener(e -> {
-            Intent intent2 = new Intent(this,SettingsActivity.class);
-            startActivity(intent2);
-        });
 
-        img_activity.setOnClickListener(e -> {
-            new GetDataWithoutMap().execute();
-        });
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(Settings.canDrawOverlays(this)){
                 Intent intentService = new Intent(MainActivity.this,MyService.class);
@@ -275,24 +283,36 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     AlertDialog alert = null;
     private void showAlertDialog(MapboxMap mapboxMap) {
         final int[] lang = {0};
+        final int[] arr_lang_index = {0};
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
 
         alertDialog.setTitle("Language");
-        String[] items = {"English", "Русский"};
-        int checkedItem = 1;
+        String[] items = getResources().getStringArray(R.array.languages);
+        int checkedItem = 0;
         alertDialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
-                        lang[0] =  2;
-                        editor.putInt(conf.getLANG(),2);
-                        editor.apply();
-                        break;
-                    case 1:
                         lang[0] =  1;
                         editor.putInt(conf.getLANG(),1);
                         editor.apply();
+                        arr_lang_index[0] = R.array.app_lang_ru;
+                        array = getResources().getStringArray(R.array.app_lang_ru);
+                        break;
+                    case 1:
+                        lang[0] =  2;
+                        editor.putInt(conf.getLANG(),2);
+                        editor.apply();
+                        arr_lang_index[0] = R.array.app_lang_en;
+                        array = getResources().getStringArray(R.array.app_lang_en);
+                        break;
+                    case 2:
+                        lang[0] =  3;
+                        editor.putInt(conf.getLANG(),3);
+                        editor.apply();
+                        arr_lang_index[0] = R.array.app_lang_ar;
+                        array = getResources().getStringArray(R.array.app_lang_ar);
                         break;
                 }
             }
@@ -300,16 +320,15 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         alertDialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if(lang[0]==2){
-                    editor.putInt(conf.getLANG(),2);
-                    editor.apply();
-                }else{
+                if(lang[0]<=0){
                     editor.putInt(conf.getLANG(),1);
                     editor.apply();
+                    array = getResources().getStringArray(R.array.app_lang_ru);
                 }
-                Toast.makeText(MainActivity.this, array[32], Toast.LENGTH_SHORT).show();
+                searchBtn.setText(array[2]);
+                trainBtn.setText(array[11]);
                 String city = mSettings.getString("city","");
-                Log.e("setPositiveButton",city);
+
                 if(city.equals("")){
                     showCountryAlert(mapboxMap);
                 }else{

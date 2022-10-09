@@ -198,7 +198,7 @@ public class MyService extends Service {
         layout.setOnTouchListener(new View.OnTouchListener() {
                                       float dX, dY;
 
-            @Override
+                                      @Override
                                       public boolean onTouch(View view, MotionEvent motionEvent) {
 
                                           switch (motionEvent.getAction()) {
@@ -368,22 +368,22 @@ public class MyService extends Service {
 
             cameraDevice.createCaptureSession(
                     Arrays.asList(surface, imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    //The camera is already closed
-                    if (null == cameraDevice) {
-                        return;
-                    }
-                    // When the session is ready, we start displaying the preview.
-                    cameraCaptureSessions = cameraCaptureSession;
-                    updatePreview();
-                }
+                        @Override
+                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            //The camera is already closed
+                            if (null == cameraDevice) {
+                                return;
+                            }
+                            // When the session is ready, we start displaying the preview.
+                            cameraCaptureSessions = cameraCaptureSession;
+                            updatePreview();
+                        }
 
-                @Override
-                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    Toast.makeText(MyService.this, "Configuration change", Toast.LENGTH_SHORT).show();
-                }
-            }, null);
+                        @Override
+                        public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            Toast.makeText(MyService.this, "Configuration change", Toast.LENGTH_SHORT).show();
+                        }
+                    }, null);
         } catch (Exception e) {
             e.printStackTrace();
             //Log.e(TAG,e.toString());
@@ -822,7 +822,7 @@ public class MyService extends Service {
 
         final Canvas cvFace = new Canvas(faceBmp);
 
-       // boolean saved = false;
+        // boolean saved = false;
         for (Face face : faces) {
 
             final RectF boundingBox = new RectF(face.getBoundingBox());
@@ -856,13 +856,13 @@ public class MyService extends Service {
                 Object extra = null;
 
                 //if (add) {
-                   try{
-                       crop = Bitmap.createBitmap(portraitBmp,
-                               (int) faceBB.left,
-                               (int) faceBB.top,
-                               (int) faceBB.width(),
-                               (int) faceBB.height());
-                   }catch (Exception e){e.printStackTrace();}
+                try{
+                    crop = Bitmap.createBitmap(portraitBmp,
+                            (int) faceBB.left,
+                            (int) faceBB.top,
+                            (int) faceBB.width(),
+                            (int) faceBB.height());
+                }catch (Exception e){e.printStackTrace();}
                 //}
 
 
