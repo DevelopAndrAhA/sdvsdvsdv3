@@ -95,7 +95,7 @@ public class MyService extends Service {
     WindowManager windowManager = null;
     AutoFitTextureView texture;
     //String TAG = "MyService";
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private Size imageDimension;
     protected CaptureRequest.Builder captureRequestBuilder;
     private String cameraId = "0";
@@ -111,23 +111,23 @@ public class MyService extends Service {
     OverlayView trackingOverlay;
     protected int previewWidth = 0;
     protected int previewHeight = 0;
-    private static final float TEXT_SIZE_DIP = 10;
+    private final float TEXT_SIZE_DIP = 10;
     private BorderedText borderedText;
     private MultiBoxTracker tracker;
     private SimilarityClassifier detector;
-    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
-    private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
-    private static final int TF_OD_API_INPUT_SIZE = 112;
-    private static final boolean TF_OD_API_IS_QUANTIZED = false;
+    private final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+    private final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
+    private final int TF_OD_API_INPUT_SIZE = 112;
+    private final boolean TF_OD_API_IS_QUANTIZED = false;
     private Integer sensorOrientation;
     private Bitmap rgbFrameBitmap = null;
     private Bitmap croppedBitmap = null;
     private Bitmap portraitBmp = null;
     private Bitmap faceBmp = null;
     private Matrix frameToCropTransform;
-    private static final boolean MAINTAIN_ASPECT = false;
+    private  final boolean MAINTAIN_ASPECT = false;
     private Matrix cropToFrameTransform;
-    private static final Size previewSize = new Size(640, 480);
+    private  final Size previewSize = new Size(640, 480);
     private int[] rgbBytes = null;
     private byte[][] yuvBytes = new byte[3][];
     private int yRowStride;
@@ -543,7 +543,7 @@ public class MyService extends Service {
         }
 
         sensorOrientation = rotation - getScreenOrientation();
-        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
+        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.RGB_565);//RGB_565 ARGB_8888
 
 
         int targetW, targetH;
@@ -558,10 +558,10 @@ public class MyService extends Service {
         int cropW = (int) (targetW / 2.0);
         int cropH = (int) (targetH / 2.0);
 
-        croppedBitmap = Bitmap.createBitmap(cropW, cropH, Bitmap.Config.ARGB_8888);
+        croppedBitmap = Bitmap.createBitmap(cropW, cropH, Bitmap.Config.RGB_565);
 
-        portraitBmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
-        faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.ARGB_8888);
+        portraitBmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.RGB_565);
+        faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.RGB_565);
 
         frameToCropTransform =
                 ImageUtils.getTransformationMatrix(
@@ -999,7 +999,7 @@ public class MyService extends Service {
     };
 
 
-    public static Bitmap resizeImage(Bitmap realImage, float maxImageSize,boolean filter) {
+    public Bitmap resizeImage(Bitmap realImage, float maxImageSize,boolean filter) {
         float ratio = Math.min((float) maxImageSize / realImage.getWidth(),(float) maxImageSize / realImage.getHeight());
         int width = Math.round((float) ratio * realImage.getWidth());
         int height = Math.round((float) ratio * realImage.getHeight());
