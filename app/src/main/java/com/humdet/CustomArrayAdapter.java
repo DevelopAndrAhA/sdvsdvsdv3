@@ -54,21 +54,15 @@ public class CustomArrayAdapter extends BaseAdapter{
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder = null;
-        View v = convertView;
-        if ( v == null){
-            holder = new ViewHolder();
-            v = inflater.inflate(R.layout.custom_list, parent, false);
-            holder.imageView2 = (ZoomageView) v.findViewById(R.id.imageView2);
-            holder.imageView3 = (ZoomageView) v.findViewById(R.id.imageView3);
-            holder.imageView4 = (ZoomageView) v.findViewById(R.id.imageView4);
-            holder.progressBar1 = (ProgressBar) v.findViewById(R.id.progressBar1);
-            holder.progressBar2 = (ProgressBar) v.findViewById(R.id.progressBar2);
-            holder.progressBar3 = (ProgressBar) v.findViewById(R.id.progressBar3);
-            v.setTag(holder);
-        }
+        convertView  = inflater.inflate(R.layout.custom_list, parent, false);
+        ImageView imageView2 =  convertView.findViewById(R.id.imageView2);
+        ImageView imageView3 =  convertView.findViewById(R.id.imageView3);
+        ImageView imageView4 =  convertView.findViewById(R.id.imageView4);
+        ProgressBar progressBar1 =  convertView.findViewById(R.id.progressBar1);
+        ProgressBar progressBar2 =  convertView.findViewById(R.id.progressBar2);
+        ProgressBar progressBar3 =  convertView.findViewById(R.id.progressBar3);
 
-        holder.imageView2.setOnClickListener(new View.OnClickListener() {
+        imageView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context,DetailActivity.class);
@@ -80,7 +74,7 @@ public class CustomArrayAdapter extends BaseAdapter{
 
         if(jsonObjects.get(position)[1]!=null){
             try{
-                holder.imageView3.setOnClickListener(new View.OnClickListener() {
+                imageView3.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(context,DetailActivity.class);
@@ -92,7 +86,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         }
         if(jsonObjects.get(position)[2]!=null){
             try{
-                holder.imageView4.setOnClickListener(new View.OnClickListener() {
+                imageView4.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(context,DetailActivity.class);
@@ -108,21 +102,20 @@ public class CustomArrayAdapter extends BaseAdapter{
         String [] urls = url.get(position);
 
 
-        ViewHolder finalHolder = holder;
         Picasso.with(context)
                 .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg")
                 .placeholder(R.drawable.man)
                 .error(R.drawable.person_ic)
                 .fit().centerCrop()
-                .into(holder.imageView2, new Callback() {
+                .into(imageView2, new Callback() {
                     @Override
                     public void onSuccess() {
-                        finalHolder.progressBar1.setVisibility(View.GONE);
+                        progressBar1.setVisibility(View.GONE);
                     }
 
                     @Override
                     public void onError() {
-                        finalHolder.progressBar1.setVisibility(View.GONE);
+                        progressBar1.setVisibility(View.GONE);
                     }
                 });
 
@@ -133,20 +126,20 @@ public class CustomArrayAdapter extends BaseAdapter{
                     .placeholder(R.drawable.man)
                     .error(R.drawable.person_ic)
                     .fit().centerCrop()
-                    .into(holder.imageView3, new Callback() {
+                    .into(imageView3, new Callback() {
                         @Override
                         public void onSuccess() {
-                            finalHolder.progressBar2.setVisibility(View.GONE);
+                            progressBar2.setVisibility(View.GONE);
                         }
 
                         @Override
                         public void onError() {
-                            finalHolder.progressBar2.setVisibility(View.GONE);
+                            progressBar2.setVisibility(View.GONE);
                         }
                     });
         }else{
-            holder.imageView3.setVisibility(View.INVISIBLE);
-            finalHolder.progressBar2.setVisibility(View.GONE);
+            imageView3.setVisibility(View.INVISIBLE);
+            progressBar2.setVisibility(View.GONE);
         }
         if(urls[2]!=null){
             Picasso.with(context)
@@ -154,36 +147,28 @@ public class CustomArrayAdapter extends BaseAdapter{
                     .placeholder(R.drawable.man)
                     .error(R.drawable.person_ic)
                     .fit().centerCrop()
-                    .into(holder.imageView4, new Callback() {
+                    .into(imageView4, new Callback() {
                         @Override
                         public void onSuccess() {
-                            finalHolder.progressBar3.setVisibility(View.GONE);
+                            progressBar3.setVisibility(View.GONE);
                         }
 
                         @Override
                         public void onError() {
-                            finalHolder.progressBar3.setVisibility(View.GONE);
+                            progressBar3.setVisibility(View.GONE);
                         }
                     });
         }else{
-            holder.imageView4.setVisibility(View.INVISIBLE);
-            finalHolder.progressBar3.setVisibility(View.GONE);
+            imageView4.setVisibility(View.INVISIBLE);
+            progressBar3.setVisibility(View.GONE);
         }
 
 
 
-        return v;
+        return convertView;
 
     }
-    private class ViewHolder {
-        private com.jsibbold.zoomage.ZoomageView imageView2;
-        private com.jsibbold.zoomage.ZoomageView imageView3;
-        private com.jsibbold.zoomage.ZoomageView imageView4;
-        private ProgressBar progressBar1;
-        private ProgressBar progressBar2;
-        private ProgressBar progressBar3;
 
-    }
     @Override
     public boolean isEnabled(int position)
     {

@@ -58,6 +58,7 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -66,7 +67,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,6 +86,9 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     JSONArray humPhotos;
     Button searchBtn = null;
     Button trainBtn = null;
+
+    OkHttpClient client = new OkHttpClient();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -193,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         });
 
         img_activity.setOnClickListener(e -> {
-            new GetDataWithoutMap().execute();
+            getDataWithoutMap();
         });
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -213,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         }
 
 
-        new GetData().execute();
+        getData();
 
 
 
@@ -427,151 +433,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
     }
 
-    Bitmap[] bmps;
-    class DownloadImages extends AsyncTask<Void,Void,Void>{
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            bmps = new Bitmap[humDataList.size()];
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-            OkHttpClient client1 = new  OkHttpUtils().getInstance();
-            for(int i=0;i<humDataList.size();i++){
-                Request request1 = new Request.Builder()
-                        .url(conf.getDomen()+ "image?imgname="+humDataList.get(i).getPhotoName()+"_SMALL.jpg")
-                        .build();
-                Call call1 = client1.newCall(request1);
-                try{
-                    final Response response = call1.execute();
-                    InputStream inputStream = response.body().byteStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    bmps[i] = bitmap;
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-            for(int i =0;i<bmps.length;i++){
-                Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bmps[i]);
-                try{
-                    m_map.addMarker(new MarkerOptions().setPosition(new LatLng(humDataList.get(i).getLat(), humDataList.get(i).getLng())).setTitle(humDataList.get(i).getDate()).setIcon(paellaIcon));
-                }catch (Exception e){}
-            }
-        }
-    }
-
-    class GetData extends AsyncTask<Void,Void,Void>{
-        private ProgressDialog dialog;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            dialog = new ProgressDialog(MainActivity.this);
-            dialog.setMessage(array[1]);
-            dialog.setCancelable(false);
-            dialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            OkHttpClient client = new  OkHttpUtils().getInstance();
-            Request request = new Request.Builder()
-                    .url(conf.getDomen()+ "getInitData?lat="+lat+"&lng="+lng)
-                    .build();
-            Call call = client.newCall(request);
-            try{
-                Response response = call.execute();
-                if(response.code()==200){
-                    try{
-                        humPhotos = new JSONArray(response.body().string());
-                    }catch (Exception e){e.printStackTrace();}
-                }else{}
-            }catch (Exception e){e.printStackTrace();}
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-            if(humPhotos!=null){
-                for(int i=0;i<humPhotos.length();i++){
-                    try {
-                        JSONObject tmpHum = humPhotos.getJSONObject(i);
-                        HumData humData = new HumData();
-                        humData.setId(tmpHum.getInt("fullFaceFeatures_id"));
-                        humData.setDate(tmpHum.getString("inp_date"));
-                        humData.setPhotoName(tmpHum.getString("photoName"));
-                        humData.setLat(tmpHum.getDouble("lat"));
-                        humData.setLng(tmpHum.getDouble("lng"));
-                        humDataList.add(humData);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    new DownloadImages().execute();
-                }
-            }
-            if (dialog.isShowing()) {
-                dialog.dismiss();
-            }
-
-        }
-    }
-
-
-
-    class GetDataWithoutMap extends AsyncTask<Void,Void,Void> {
-        JSONArray jsonArray;
-        private ProgressDialog dialog;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            dialog = new ProgressDialog(MainActivity.this);
-            dialog.setMessage(array[1]);
-            dialog.setCancelable(false);
-            dialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            OkHttpClient client = new OkHttpClient();
-            try {
-                String url = "getFirstData4imgs";
-                com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
-                        .url(conf.getDomen()+ url)
-                        .build();
-                Call call1 = client.newCall(request1);
-                final Response response = call1.execute();
-                String res = response.body().string();
-                try{
-                    jsonArray = new JSONArray(res);
-                }catch (Exception e){}
-            }catch (Exception e){}
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-            if (dialog.isShowing()) {
-                dialog.dismiss();
-            }
-            if(jsonArray!=null){
-                Intent intent = new Intent(MainActivity.this,ResultSearchActivity.class);
-                intent.putExtra("jsonArray",jsonArray.toString());
-                intent.putExtra("main",true);
-                startActivity(intent);
-            }else{
-                Toast.makeText(MainActivity.this,array[22],Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     public boolean providerStatus(LocationManager locManager){
         boolean gps_enabled=locManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean network_enabled=locManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
@@ -641,4 +502,113 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         builderSingle.show();
     }
 
+
+    public void getDataWithoutMap(){
+        JSONArray[] jsonArray = new JSONArray[1];
+        ProgressDialog  dialog = new ProgressDialog(MainActivity.this);
+        dialog.setMessage(array[1]);
+        dialog.setCancelable(false);
+        dialog.show();
+
+            String url = "getFirstData4imgs";
+            com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
+                    .url(conf.getDomen()+ url)
+                    .build();
+            Call call = client.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Request request, IOException e) {}
+                @Override
+                public void onResponse(Response response) throws IOException {
+                    // Обработка результата
+                    String res = response.body().string();
+                    try{
+                        jsonArray[0] = new JSONArray(res);
+                        if (dialog.isShowing()) {
+                            dialog.dismiss();
+                        }
+                        if(jsonArray[0] != null){
+                            Intent intent = new Intent(MainActivity.this,ResultSearchActivity.class);
+                            intent.putExtra("jsonArray", jsonArray[0].toString());
+                            intent.putExtra("main",true);
+                            startActivity(intent);
+                        }else{
+                            Toast.makeText(MainActivity.this,array[22],Toast.LENGTH_SHORT).show();
+                        }
+                    }catch (Exception e){}
+                }
+        });
+
+
+    }
+
+    public void getData(){
+        ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+        dialog.setMessage(array[1]);
+        dialog.setCancelable(false);
+        dialog.show();
+        Request request = new Request.Builder()
+                .url(conf.getDomen()+ "getInitData?lat="+lat+"&lng="+lng)
+                .build();
+        Call call = client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {}
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                try{
+                    humPhotos = new JSONArray(response.body().string());
+                }catch (Exception e){e.printStackTrace();}
+            }
+        });
+        if(humPhotos!=null){
+            for(int i=0;i<humPhotos.length();i++){
+                try {
+                    JSONObject tmpHum = humPhotos.getJSONObject(i);
+                    HumData humData = new HumData();
+                    humData.setId(tmpHum.getInt("fullFaceFeatures_id"));
+                    humData.setDate(tmpHum.getString("inp_date"));
+                    humData.setPhotoName(tmpHum.getString("photoName"));
+                    humData.setLat(tmpHum.getDouble("lat"));
+                    humData.setLng(tmpHum.getDouble("lng"));
+                    humDataList.add(humData);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                downloadImages();
+            }
+        }
+        if (dialog.isShowing()) {
+            dialog.dismiss();
+        }
+    }
+
+    public void downloadImages(){
+        for(int i=0;i<humDataList.size();i++){
+            Request request = new Request.Builder()
+                    .url(conf.getDomen()+ "image?imgname="+humDataList.get(i).getPhotoName()+"_SMALL.jpg")
+                    .build();
+            Call call = client.newCall(request);
+            int finalI = i;
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Request request, IOException e) {}
+
+                @Override
+                public void onResponse(Response response) throws IOException {
+                    try{
+                        InputStream inputStream = response.body().byteStream();
+                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bitmap);
+                        try{
+                            m_map.addMarker(new MarkerOptions().setPosition(new LatLng(humDataList.get(finalI).getLat(), humDataList.get(finalI).getLng())).setTitle(humDataList.get(finalI).getDate()).setIcon(paellaIcon));
+                        }catch (Exception e){}
+
+                    }catch (Exception e){}
+                }
+            });
+        }
+
+    }
 }
