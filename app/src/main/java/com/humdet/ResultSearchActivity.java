@@ -87,7 +87,7 @@ public class ResultSearchActivity extends AppCompatActivity {
             jsonObjects.add(jsonObject);
         }
         if(list==null || list.size()==0) textView.setVisibility(View.VISIBLE);
-        CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects);
+        CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects,jsonArray.toString());
         listView.setAdapter(adapter);
         listView.setClickable(false);
 

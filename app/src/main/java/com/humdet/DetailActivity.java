@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -14,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.humdet.util.OnSwipeTouchListener;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -28,21 +30,28 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
 public class DetailActivity extends AppCompatActivity {
 
-    MyPermissions per = new MyPermissions(DetailActivity.this,DetailActivity.this);
-    SharedPreferences mSettings;
+    private MyPermissions per = new MyPermissions(DetailActivity.this,DetailActivity.this);
+    private SharedPreferences mSettings;
     private MapView m_mapView;
     private String [] array;
-    Conf conf = new Conf();
+    private Conf conf = new Conf();
 
-    JSONObject jsonObject = null;
-    ImageView personImg;
-    TextView percent;
-    TextView photoDate2;
+    private String jsonObjectsStr;
+    private JSONObject jsonObject = null;
+    private ImageView personImg;
+    private TextView percent;
+    private TextView photoDate2;
+    private int position;
+    private JSONArray jsonArray;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +65,9 @@ public class DetailActivity extends AppCompatActivity {
         ProgressBar progressBar = findViewById(R.id.progressBar);
         try{
             jsonObject = new JSONObject(getIntent().getStringExtra("jsonObject"));
+            position = getIntent().getIntExtra("position",0);
+            jsonObjectsStr = getIntent().getStringExtra("allJsonObject");
+            jsonArray = new JSONArray(jsonObjectsStr);
         }catch (Exception e){}
 
         try{
@@ -121,9 +133,9 @@ public class DetailActivity extends AppCompatActivity {
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
             array = getResources().getStringArray(R.array.app_lang_en);
-        }/*else if(lang==conf.getAR()){
+        }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
-        }*/
+        }
 
         try{
             photoDate2.setText(array[9]+" "+jsonObject.getString("inpDate"));
@@ -148,6 +160,25 @@ public class DetailActivity extends AppCompatActivity {
                 Toast.makeText(DetailActivity.this,array[26],Toast.LENGTH_SHORT).show();
             }
         });
+
+        /*personImg.setOnTouchListener(new com.humdet.util.OnSwipeTouchListener(DetailActivity.this) {
+            public void onSwipeTop() {
+            }
+            public void onSwipeRight() {
+                try{
+                    Toast.makeText(DetailActivity.this,jsonArray.get(position-1).toString(),Toast.LENGTH_SHORT).show();
+                }catch (Exception e){}
+            }
+            public void onSwipeLeft() {
+                try{
+                    Toast.makeText(DetailActivity.this,jsonArray.get(position+1).toString(),Toast.LENGTH_SHORT).show();
+                }catch (Exception e){}
+            }
+            public void onSwipeBottom() {
+            }
+
+        });*/
+
     }
     @Override
     public boolean onSupportNavigateUp() {

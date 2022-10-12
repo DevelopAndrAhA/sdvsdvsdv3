@@ -19,6 +19,7 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.ColorRes;
@@ -28,11 +29,13 @@ public class CustomArrayAdapter extends BaseAdapter{
     private LayoutInflater inflater;
     private List<String[]>url;
     private  List<JSONObject[]> jsonObjects;
+    String jsonData;
     Context context;
     Conf conf = new Conf();
-    public CustomArrayAdapter(Context context,List<String[]> url, List<JSONObject[]> jsonObjects) {
+    public CustomArrayAdapter(Context context,List<String[]> url, List<JSONObject[]> jsonObjects,String jsonData) {
         this.url = url;
         this.jsonObjects = jsonObjects;
+        this.jsonData = jsonData;
         this.context = context;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -67,6 +70,8 @@ public class CustomArrayAdapter extends BaseAdapter{
             public void onClick(View view) {
                 Intent intent = new Intent(context,DetailActivity.class);
                 intent.putExtra("jsonObject",jsonObjects.get(position)[0].toString());
+                intent.putExtra("position",position);
+                intent.putExtra("allJsonObject",jsonData);
                 context.startActivity(intent);
             }
         });
@@ -79,6 +84,8 @@ public class CustomArrayAdapter extends BaseAdapter{
                     public void onClick(View view) {
                         Intent intent = new Intent(context,DetailActivity.class);
                         intent.putExtra("jsonObject",jsonObjects.get(position)[1].toString());
+                        intent.putExtra("position",position+1);
+                        intent.putExtra("allJsonObject",jsonData);
                         context.startActivity(intent);
                     }
                 });
@@ -90,8 +97,9 @@ public class CustomArrayAdapter extends BaseAdapter{
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(context,DetailActivity.class);
-                        Log.e("json",jsonObjects.get(position)[2].toString());
                         intent.putExtra("jsonObject",jsonObjects.get(position)[2].toString());
+                        intent.putExtra("position",position+2);
+                        intent.putExtra("allJsonObject",jsonData);
                         context.startActivity(intent);
                     }
                 });

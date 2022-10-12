@@ -901,9 +901,9 @@ public class MyService extends Service {
     }
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        Intent restartServiceIntent = new Intent(getApplicationContext(),this.getClass());
+        /*Intent restartServiceIntent = new Intent(getApplicationContext(),this.getClass());
         restartServiceIntent.setPackage(getPackageName());
-        startService(restartServiceIntent);
+        startService(restartServiceIntent);*/
         super.onTaskRemoved(rootIntent);
     }
 

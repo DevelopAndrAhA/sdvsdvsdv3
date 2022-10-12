@@ -79,7 +79,7 @@ public class ResultImgsActivity extends AppCompatActivity {
             jsonObjects.add(jsonObject);
         }
         if(list==null || list.size()==0) textView.setVisibility(View.VISIBLE);
-        CustomArrayAdapter adapter = new CustomArrayAdapter(ResultImgsActivity.this, list,jsonObjects);
+        CustomArrayAdapter adapter = new CustomArrayAdapter(ResultImgsActivity.this, list,jsonObjects,jsonArray.toString());
         listView.setAdapter(adapter);
         listView.setClickable(false);
 

@@ -20,19 +20,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -45,10 +38,8 @@ import com.humdet.db.Country;
 import com.humdet.db.Region;
 import com.humdet.tflite.SimilarityClassifier;
 import com.humdet.tflite.TFLiteObjectDetectionAPIModel;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -58,9 +49,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -337,14 +326,12 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             OkHttpClient client = new OkHttpClient();
             try {
                 String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0&city_id="+city_id;
-                Log.e("url",url);
                 com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
                         .url(conf.getDomen()+ url)
                         .build();
                 Call call1 = client.newCall(request1);
                 final Response response = call1.execute();
                 String res = response.body().string();
-                Log.e("res",res);
                 try{
                     jsonArray = new JSONArray(res);
                 }catch (Exception e){}
@@ -416,7 +403,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                                 city_id = cities.get(c).getId();
                                 cityText.setText(array[33]+" : "+cities.get(c).getName());
                                 dialog.dismiss();
-                                Log.e("CITYID",city_id+"");
                                 Toast.makeText(SearchActivity.this,array[19],Toast.LENGTH_LONG).show();
                             }
                         });

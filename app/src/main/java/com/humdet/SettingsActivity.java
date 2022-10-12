@@ -54,7 +54,9 @@ public class SettingsActivity extends AppCompatActivity {
         CheckBox checkBox = findViewById(R.id.checkBox);
         checkBox.setText(array[17]);
         checkBox.setChecked(true);
-        if(mSettings.getBoolean("save_photo",false)){
+
+        boolean bool = mSettings.getBoolean("save_photo",false);
+        if(bool){
             checkBox.setChecked(true);
         }else{
             checkBox.setChecked(false);
