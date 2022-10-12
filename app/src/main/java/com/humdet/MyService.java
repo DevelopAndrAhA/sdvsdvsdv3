@@ -783,28 +783,16 @@ public class MyService extends Service {
 
     }
 
-    private boolean onFacesDetected(long currTimestamp, List<Face> faces/*,boolean add*/) {
-        //Log.e(TAG,"onFacesDetected()");
-        //takePicture();
+    private boolean onFacesDetected(long currTimestamp, List<Face> faces) {
         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
         Bitmap crop = null;
-        //Bitmap newBit = Bitmap.createBitmap(croppedBitmap);
-
         final Canvas canvas = new Canvas(cropCopyBitmap);
         final Paint paint = new Paint();
         paint.setColor(Color.TRANSPARENT);
         paint.setStyle(Style.STROKE);
         paint.setStrokeWidth(2.0f);
-
-
-
         final List<SimilarityClassifier.Recognition> mappedRecognitions =
                 new LinkedList<SimilarityClassifier.Recognition>();
-
-
-        //final List<Classifier.Recognition> results = new ArrayList<>();
-
-        // Note this can be done only once
         int sourceW = rgbFrameBitmap.getWidth();
         int sourceH = rgbFrameBitmap.getHeight();
         int targetW = portraitBmp.getWidth();
@@ -816,46 +804,27 @@ public class MyService extends Service {
                 targetH,
                 sensorOrientation);
         final Canvas cv = new Canvas(portraitBmp);
-
-        // draws the original image in portrait mode.
         cv.drawBitmap(rgbFrameBitmap, transform, null);
-
         final Canvas cvFace = new Canvas(faceBmp);
-
-        // boolean saved = false;
         for (Face face : faces) {
-
             final RectF boundingBox = new RectF(face.getBoundingBox());
-
-            //final boolean goodConfidence = result.getConfidence() >= minimumConfidence;
-            final boolean goodConfidence = true; //face.get;
+            final boolean goodConfidence = true;
             if (boundingBox != null && goodConfidence) {
-
-                // maps crop coordinates to original
                 cropToFrameTransform.mapRect(boundingBox);
-
-                // maps original coordinates to portrait coordinates
                 RectF faceBB = new RectF(boundingBox);
                 transform.mapRect(faceBB);
-
-                // translates portrait to origin and scales to fit input inference size
                 cv.drawRect(faceBB, paint);
                 float sx = ((float) TF_OD_API_INPUT_SIZE) / faceBB.width();
                 float sy = ((float) TF_OD_API_INPUT_SIZE) / faceBB.height();
                 Matrix matrix = new Matrix();
                 matrix.postTranslate(-faceBB.left, -faceBB.top);
                 matrix.postScale(sx, sy);
-
                 cvFace.drawBitmap(portraitBmp, matrix, null);
-
                 canvas.drawRect(faceBB, paint);
-
                 String label = "";
                 float confidence = -1f;
                 Integer color = Color.BLUE;
                 Object extra = null;
-
-                //if (add) {
                 try{
                     crop = Bitmap.createBitmap(portraitBmp,
                             (int) faceBB.left,
@@ -863,14 +832,8 @@ public class MyService extends Service {
                             (int) faceBB.width(),
                             (int) faceBB.height());
                 }catch (Exception e){e.printStackTrace();}
-                //}
-
-
-
-
                 if(crop!=null){
                     final long startTime = SystemClock.uptimeMillis();
-                    //final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp, add);
                     final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp, true);
                     lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                     if (resultsAux.size() > 0) {

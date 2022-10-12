@@ -169,10 +169,6 @@ public class TFLiteObjectDetectionAPIModel
 
   // ищет ближайшее вложение в наборе данных (используя норму L2) и возвращает пару <id, Distance>
   private Pair<String, Float> findNearest(float[] emb) {
-    if(registered.size()>2){
-      Log.e("DEBUG","DEBUG");
-    }
-    Log.e("registered",registered.size()+"");
     Pair<String, Float> ret = null;
     for (Map.Entry<String, Recognition> entry : registered.entrySet()) {
         final String name = entry.getKey();
@@ -184,14 +180,18 @@ public class TFLiteObjectDetectionAPIModel
               distance += diff*diff;
         }
         distance = (float) Math.sqrt(distance);
-        if (ret == null || distance < ret.second) {
+        if(distance<=1.25f){
+          if (ret == null || distance < ret.second) {
             ret = new Pair<>(name, distance);
+          }
         }
     }
 
     return ret;
 
   }
+
+
 
 
   @Override
@@ -238,18 +238,10 @@ public class TFLiteObjectDetectionAPIModel
     outputMap.put(0, embeedings);
 
 
-    // Run the inference call.
     Trace.beginSection("run");
-    //tfLite.runForMultipleInputsOutputs(inputArray, outputMapBack);
     tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
     Trace.endSection();
 
-//    String res = "[";
-//    for (int i = 0; i < embeedings[0].length; i++) {
-//      res += embeedings[0][i];
-//      if (i < embeedings[0].length - 1) res += ", ";
-//    }
-//    res += "]";
 
 
     float distance = Float.MAX_VALUE;
@@ -257,7 +249,6 @@ public class TFLiteObjectDetectionAPIModel
     String label = "?";
 
     if (registered.size() > 0) {
-        //LOGGER.i("dataset SIZE: " + registered.size());
         final Pair<String, Float> nearest = findNearest(embeedings[0]);
         if (nearest != null) {
             final String name = nearest.first;
