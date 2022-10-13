@@ -1,34 +1,28 @@
 package com.humdet;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Handler;
-import android.util.Log;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-
-
-import com.jsibbold.zoomage.ZoomageView;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.List;
-
 import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AlertDialog;
+
 
 public class CustomArrayAdapter extends BaseAdapter{
     private LayoutInflater inflater;
     private List<String[]>url;
-    private  List<JSONObject[]> jsonObjects;
+    private List<JSONObject[]> jsonObjects;
     String jsonData;
     Context context;
     Conf conf = new Conf();
@@ -38,7 +32,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         this.jsonData = jsonData;
         this.context = context;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
+        alertDialogBuilder();
     }
     @Override
     public int getCount() {
@@ -61,9 +55,8 @@ public class CustomArrayAdapter extends BaseAdapter{
         ImageView imageView2 =  convertView.findViewById(R.id.imageView2);
         ImageView imageView3 =  convertView.findViewById(R.id.imageView3);
         ImageView imageView4 =  convertView.findViewById(R.id.imageView4);
-        ProgressBar progressBar1 =  convertView.findViewById(R.id.progressBar1);
-        ProgressBar progressBar2 =  convertView.findViewById(R.id.progressBar2);
-        ProgressBar progressBar3 =  convertView.findViewById(R.id.progressBar3);
+
+        String [] urls = url.get(position);
 
         imageView2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,7 +68,13 @@ public class CustomArrayAdapter extends BaseAdapter{
                 context.startActivity(intent);
             }
         });
-
+        imageView2.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                showAlertDialog(urls[0]);
+                return true;
+            }
+        });
 
         if(jsonObjects.get(position)[1]!=null){
             try{
@@ -87,6 +86,13 @@ public class CustomArrayAdapter extends BaseAdapter{
                         intent.putExtra("position",position+1);
                         intent.putExtra("allJsonObject",jsonData);
                         context.startActivity(intent);
+                    }
+                });
+                imageView3.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        showAlertDialog(urls[1]);
+                        return true;
                     }
                 });
             }catch (Exception e){}
@@ -103,27 +109,32 @@ public class CustomArrayAdapter extends BaseAdapter{
                         context.startActivity(intent);
                     }
                 });
+                imageView4.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        showAlertDialog(urls[2]);
+                        return true;
+                    }
+                });
             }catch (Exception e){}
         }
 
 
-        String [] urls = url.get(position);
+
 
 
         Picasso.with(context)
                 .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg")
-                .placeholder(R.drawable.man)
+                .placeholder(R.drawable.progress_animation)
                 .error(R.drawable.person_ic)
                 .fit().centerCrop()
                 .into(imageView2, new Callback() {
                     @Override
                     public void onSuccess() {
-                        progressBar1.setVisibility(View.GONE);
                     }
 
                     @Override
                     public void onError() {
-                        progressBar1.setVisibility(View.GONE);
                     }
                 });
 
@@ -131,44 +142,38 @@ public class CustomArrayAdapter extends BaseAdapter{
         if(urls[1]!=null){
             Picasso.with(context)
                     .load(conf.getDomen()+"image?imgname="+urls[1]+"_SMALL.jpg")
-                    .placeholder(R.drawable.man)
+                    .placeholder(R.drawable.progress_animation)
                     .error(R.drawable.person_ic)
                     .fit().centerCrop()
                     .into(imageView3, new Callback() {
                         @Override
                         public void onSuccess() {
-                            progressBar2.setVisibility(View.GONE);
                         }
 
                         @Override
                         public void onError() {
-                            progressBar2.setVisibility(View.GONE);
                         }
                     });
         }else{
             imageView3.setVisibility(View.INVISIBLE);
-            progressBar2.setVisibility(View.GONE);
         }
         if(urls[2]!=null){
             Picasso.with(context)
                     .load(conf.getDomen()+"image?imgname="+urls[2]+"_SMALL.jpg")
-                    .placeholder(R.drawable.man)
+                    .placeholder(R.drawable.progress_animation)
                     .error(R.drawable.person_ic)
                     .fit().centerCrop()
                     .into(imageView4, new Callback() {
                         @Override
                         public void onSuccess() {
-                            progressBar3.setVisibility(View.GONE);
                         }
 
                         @Override
                         public void onError() {
-                            progressBar3.setVisibility(View.GONE);
                         }
                     });
         }else{
             imageView4.setVisibility(View.INVISIBLE);
-            progressBar3.setVisibility(View.GONE);
         }
 
 
@@ -186,7 +191,32 @@ public class CustomArrayAdapter extends BaseAdapter{
         return context.getResources().getColor(resId);
     }
 
+    AlertDialog alertDialog;
+    ImageView dialogImageView;
+    private void alertDialogBuilder(){
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
+        View layoutView = inflater.inflate(R.layout.img_dialog, null);
+        dialogImageView = layoutView.findViewById(R.id.imageView5);
+        dialogBuilder.setView(layoutView);
+        alertDialog = dialogBuilder.create();
+        alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+    }
+    private void showAlertDialog(String imgName){
+        Picasso.with(context)
+                .load(conf.getDomen()+"image?imgname="+imgName+".jpg")
+                .placeholder(R.drawable.progress_animation)
+                .error(R.drawable.person_ic)
+                .fit().centerCrop()
+                .into(dialogImageView, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                    }
 
-
+                    @Override
+                    public void onError() {
+                    }
+                });
+        alertDialog.show();
+    }
 
 }
