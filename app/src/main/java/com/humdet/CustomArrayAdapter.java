@@ -32,7 +32,6 @@ public class CustomArrayAdapter extends BaseAdapter{
         this.jsonData = jsonData;
         this.context = context;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        alertDialogBuilder();
     }
     @Override
     public int getCount() {
@@ -193,7 +192,10 @@ public class CustomArrayAdapter extends BaseAdapter{
 
     AlertDialog alertDialog;
     ImageView dialogImageView;
-    private void alertDialogBuilder(){
+
+
+
+    public void alertDialogBuilder(){
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
         View layoutView = inflater.inflate(R.layout.img_dialog, null);
         dialogImageView = layoutView.findViewById(R.id.imageView5);

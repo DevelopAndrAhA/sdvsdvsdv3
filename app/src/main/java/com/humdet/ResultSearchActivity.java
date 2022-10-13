@@ -109,6 +109,11 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
         }
         if(list==null || list.size()==0) textView.setVisibility(View.VISIBLE);
         CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects,jsonArray.toString());
+        runOnUiThread(new Runnable() {
+            public void run() {
+                adapter.alertDialogBuilder();
+            }
+        });
         listView.setAdapter(adapter);
         listView.setClickable(false);
 
@@ -184,9 +189,8 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                         }
                         CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects,jsonArray.toString());
                         runOnUiThread(new Runnable() {
-                            @Override
                             public void run() {
-                                listView.setAdapter(adapter);
+                                adapter.alertDialogBuilder();
                             }
                         });
                         swipeRefreshLayout.postDelayed(new Runnable() {
