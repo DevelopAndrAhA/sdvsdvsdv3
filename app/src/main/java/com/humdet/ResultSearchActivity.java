@@ -67,6 +67,8 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
             array = getResources().getStringArray(R.array.app_lang_en);
         }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
+        }else{
+            array = getResources().getStringArray(R.array.app_lang_ru);
         }
         boolean main = getIntent().getBooleanExtra("main",false);
         if(main){

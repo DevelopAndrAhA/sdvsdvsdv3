@@ -48,6 +48,8 @@ public class SettingsActivity extends AppCompatActivity {
             array = getResources().getStringArray(R.array.app_lang_en);
         }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
+        }else{
+            array = getResources().getStringArray(R.array.app_lang_ru);
         }
         setContentView(R.layout.activity_settings);
         getSupportActionBar().setTitle(array[21]);
@@ -82,6 +84,10 @@ public class SettingsActivity extends AppCompatActivity {
             if(selected.equals("English")){
                 editor.putInt(conf.getLANG(),2);
             }else if(selected.equals("Русский")){
+                editor.putInt(conf.getLANG(),1);
+            }else if(selected.equals("عربي")){
+                editor.putInt(conf.getLANG(),3);
+            }else{
                 editor.putInt(conf.getLANG(),1);
             }
             editor.putString("city",cityName.getText().toString());

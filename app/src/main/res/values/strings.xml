@@ -9,7 +9,7 @@
     <string-array name="languages">
         <item>Русский</item>
         <item>English</item>
-        <item>Arabic</item>
+        <item>عربي</item>
     </string-array>
 
 
@@ -88,41 +88,41 @@
         <item>(попробуйте изменить дату или город)</item>
     </string-array>
     <string-array name="app_lang_ar">
-        <item>sdvdv</item>
-        <item>dsvdsv</item>
-        <item>sdvsdv</item>
-        <item>sdvsdvsd</item>
-        <item>dvsdv</item>
-        <item>dvsdvdv</item>
-        <item>На фото лицо не обнаружено, повторите еще раз выбрать фото</item>
-        <item>Результат поиска</item>
-        <item>Сходство</item>
-        <item>Дата съемки</item>
-        <item>Инфо</item>
-        <item>Добавить фото из галереи</item>
-        <item>Загрузить</item>
-        <item>Данные не найдены ,попробуйте изменить дату</item>
-        <item>Фото загружено</item>
-        <item>Ошибка</item>
-        <item>Нет совпадений</item>
-        <item>Хранить снимки на телефоне</item>
-        <item>Сохранить</item>
-        <item>Сохранено</item>
-        <item>Снимок сохранен</item>
-        <item>Настройки</item>
-        <item>Пока нет фотографий</item>
-        <item>Последние фото</item>
-        <item>Язык</item>
-        <item>Пинг(местонахождение человека в данный момент)</item>
-        <item>В стадии тестирования</item>
-        <item>Выбрать адрес</item>
-        <item>Сменить адрес</item>
-        <item>Текущий адрес</item>
-        <item>Нужно дать приложению разрешение на "Поверх других" приложений</item>
-        <item>Место съемки</item>
-        <item>В сервисе язык меняется при след.запуске приложения</item>
-        <item>Поиск по городу</item>
-        <item>попробуйте изменить дату</item>
+        <item>يخفي</item>
+        <item>تحميل</item>
+        <item>يبحث</item>
+        <item>اختر صورة</item>
+        <item>متوسط ​​نسبة التشابه</item>
+        <item>البحث عن التاريخ</item>
+        <item>لم يتم العثور على الوجه في الصورة ، كرر مرة أخرى حدد الصورة</item>
+        <item>نتائج البحث</item>
+        <item>تشابه</item>
+        <item>تاريخ الصورة</item>
+        <item>معلومات</item>
+        <item>أضف صورة من المعرض</item>
+        <item>تحميل</item>
+        <item>لم يتم العثور على البيانات ، حاول تغيير التاريخ</item>
+        <item>تم تحميل الصورة</item>
+        <item>خطأ</item>
+        <item>لا يوجد تطابق</item>
+        <item>قم بتخزين الصور التي تلتقطها على هاتفك</item>
+        <item>يحفظ</item>
+        <item>أنقذ</item>
+        <item>تم حفظ الصورة</item>
+        <item>إعدادات</item>
+        <item>ليست هناك صور بعد</item>
+        <item>أحدث الصور</item>
+        <item>لغة</item>
+        <item>بينغ (موقع الشخص في الوقت الحالي)</item>
+        <item>تحت الاختبار</item>
+        <item>حدد العنوان</item>
+        <item>تغيير العنوان</item>
+        <item>العنوان الحالي</item>
+        <item>تحتاج إلى منح التطبيق إذنًا "على رأس التطبيقات الأخرى"</item>
+        <item>مكان التصوير</item>
+        <item>في الخدمة ، تتغير اللغة في المرة التالية التي يتم فيها بدء التطبيق</item>
+        <item>البحث عن طريق المدينة</item>
+        <item>حاول تغيير التاريخ أو المدينة</item>
     </string-array>
 
 

@@ -120,9 +120,11 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             array = getResources().getStringArray(R.array.app_lang_ru);
         }else if(lang==conf.getEN()){
             array = getResources().getStringArray(R.array.app_lang_en);
-        }/*else if(lang==conf.getAR()){
+        }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
-        }*/
+        }else{
+            array = getResources().getStringArray(R.array.app_lang_ru);
+        }
 
         getSupportActionBar().setTitle(array[2]);
         Button button = findViewById(R.id.button);

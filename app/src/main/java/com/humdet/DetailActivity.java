@@ -135,6 +135,8 @@ public class DetailActivity extends AppCompatActivity {
             array = getResources().getStringArray(R.array.app_lang_en);
         }else if(lang==conf.getAR()){
             array = getResources().getStringArray(R.array.app_lang_ar);
+        }else{
+            array = getResources().getStringArray(R.array.app_lang_ru);
         }
 
         try{
