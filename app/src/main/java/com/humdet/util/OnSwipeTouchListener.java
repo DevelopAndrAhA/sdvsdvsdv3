@@ -31,6 +31,8 @@ public class OnSwipeTouchListener implements OnTouchListener {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            float dX, dY;
+
             boolean result = false;
             try {
                 float diffY = e2.getY() - e1.getY();

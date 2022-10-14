@@ -43,7 +43,6 @@ public class SaveNewFace {
     public void execute(){
         try{
             sendData();
-            //new SendData().execute();
         }catch (Exception e){}
     }
 
@@ -76,13 +75,10 @@ public class SaveNewFace {
         client.newCall(request)
                 .enqueue(new Callback() {
                     @Override
-                    public void onFailure(final Call call, IOException e) {
-                        // Error
-                    }
+                    public void onFailure(final Call call, IOException e) {}
 
                     @Override
                     public void onResponse(Call call, final Response response) throws IOException {
-                        String resss = response.body().string();
                         if(tmpDialog!=null){
                             if (tmpDialog.isShowing()) {
                                 tmpDialog.dismiss();
@@ -98,68 +94,6 @@ public class SaveNewFace {
     }
 
 
-    class SendData extends AsyncTask<Void,Void,Void>{
-        private ProgressDialog dialog;
-        int status;
-        int city_id;
-        String resss = "";
-        boolean delFlag = false;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            if(uploadFromActivity){
-                dialog = new ProgressDialog(context);
-                dialog.setMessage(titleProgress);
-                dialog.show();
-            }
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            delFlag = mSettings.getBoolean("save_photo",false);
-            city_id = mSettings.getInt("city_id",0);
-            try {
-                RequestBody formBody = new MultipartBody.Builder()
-                        .setType(MultipartBody.FORM)
-                        .addFormDataPart("crop", crop)
-                        .addFormDataPart("largePohto", largePohto.getName(),
-                                RequestBody.create(MediaType.parse("text/plain"), largePohto))
-                        .addFormDataPart("city_id", city_id+"")
-                        .addFormDataPart("username", username)
-                        .addFormDataPart("lat", lat+"")
-                        .addFormDataPart("lng", lng+"")
-                        .build();
-                Request request = new Request.Builder().url(conf.getDomen()+"new_face").post(formBody).build();
-                Log.e("request",request.toString());
-                Response response = client.newCall(request).execute();
-                Log.e("response",response.toString());
-                status = response.code();
-                resss = response.body().string();
-            }catch (Exception e){}
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-            if(dialog!=null){
-                if (dialog.isShowing()) {
-                    dialog.dismiss();
-                }
-            }
-            if(status==200){
-                Log.e("DELETE","DELETE");
-                if(delFlag){
-                    boolean delRes = largePohto.delete();
-                    if(delRes){
-                        Log.e("DELETE","true");
-                    }else{
-                        Log.e("DELETE","false");
-                    }
-                }
-            }
-        }
-    }
 
 
 

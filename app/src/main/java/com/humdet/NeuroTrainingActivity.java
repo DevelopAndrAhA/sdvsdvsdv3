@@ -72,7 +72,6 @@ public class NeuroTrainingActivity extends AppCompatActivity implements Location
     private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
     private static final int TF_OD_API_INPUT_SIZE = 112;
     private static final boolean TF_OD_API_IS_QUANTIZED = false;
-    TextView editTextTextPersonName = null;
     LocationManager locationManager = null;
 
     @Override
@@ -149,53 +148,11 @@ public class NeuroTrainingActivity extends AppCompatActivity implements Location
                 saveNewFace.execute();
             }
         });
-        editTextTextPersonName = findViewById(R.id.editTextTextPersonName);
 
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        Button DELDATA = findViewById(R.id.DELDATA);
-        DELDATA.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                class DeleteTask extends AsyncTask<Void,Void,Void>{
-                    private ProgressDialog dialog;
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        dialog = new ProgressDialog(NeuroTrainingActivity.this);
-                        dialog.setMessage(array[1]);
-                        dialog.show();
-                    }
 
-                    int status=0;
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        OkHttpClient client = new  OkHttpUtils().getInstance();
-                        Request request = new Request.Builder()
-                                .url(conf.getDomen()+ "deleteFullFace")
-                                .build();
-                        Call call = client.newCall(request);
-                        try{
-                            Response response = call.execute();
-                            status = response.code();
-                        }catch (Exception e){e.printStackTrace();}
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void unused) {
-                        super.onPostExecute(unused);
-                        if (dialog.isShowing()) {
-                            dialog.dismiss();
-                        }
-                        Toast.makeText(NeuroTrainingActivity.this, ""+status, Toast.LENGTH_SHORT).show();
-                    }
-                }
-                new DeleteTask().execute();
-            }
-
-        });
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

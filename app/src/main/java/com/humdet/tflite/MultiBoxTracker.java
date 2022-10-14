@@ -39,21 +39,21 @@ public class MultiBoxTracker {
   private static final String LOG = "MultiBoxTracker";
   private static final float MIN_SIZE = 16.0f;
   private static final int[] COLORS = {
-    Color.BLUE,
-    Color.RED,
-    Color.GREEN,
-    Color.YELLOW,
-    Color.CYAN,
-    Color.MAGENTA,
-    Color.WHITE,
-    Color.parseColor("#55FF55"),
-    Color.parseColor("#FFA500"),
-    Color.parseColor("#FF8888"),
-    Color.parseColor("#AAAAFF"),
-    Color.parseColor("#FFFFAA"),
-    Color.parseColor("#55AAAA"),
-    Color.parseColor("#AA33AA"),
-    Color.parseColor("#0D0068")
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF"),
+    Color.parseColor("#FFFFFF")
   };
   final List<Pair<Float, RectF>> screenRects = new LinkedList<Pair<Float, RectF>>();
   private final Queue<Integer> availableColors = new LinkedList<Integer>();

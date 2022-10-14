@@ -28,7 +28,6 @@ public class ImageUtils {
   // This value is 2 ^ 18 - 1, and is used to clamp the RGB values before their ranges
   // are normalized to eight bits.
   static final int kMaxChannelValue = 262143;
-  static final String LOG = "ImageUtils";
 
   @SuppressWarnings("unused")
 
@@ -65,12 +64,8 @@ public class ImageUtils {
   public static void saveBitmap(final Bitmap bitmap, final String filename) {
     final String root =
         Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow";
-    Log.i(LOG,"Saving bitmap to"+" | "+bitmap.getWidth()+" | "+bitmap.getHeight()+" | "+ root);
     final File myDir = new File(root);
 
-    if (!myDir.mkdirs()) {
-      Log.i(LOG,"Make dir failed");
-    }
 
     final String fname = filename;
     final File file = new File(myDir, fname);
@@ -82,9 +77,7 @@ public class ImageUtils {
       bitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
       out.flush();
       out.close();
-    } catch (final Exception e) {
-      Log.e(LOG, e.toString());
-    }
+    } catch (final Exception e) {}
   }
 
   public static void convertYUV420SPToARGB8888(byte[] input, int width, int height, int[] output) {
@@ -177,9 +170,6 @@ public class ImageUtils {
     final Matrix matrix = new Matrix();
 
     if (applyRotation != 0) {
-      if (applyRotation % 90 != 0) {
-        Log.e(LOG, applyRotation+"");
-      }
 
       // Translate so center of image is at origin.
       matrix.postTranslate(-srcWidth / 2.0f, -srcHeight / 2.0f);

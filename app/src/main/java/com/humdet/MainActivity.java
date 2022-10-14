@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
         getData();
-
+        new StatusOfBanner().execute();
 
 
 
@@ -241,9 +241,9 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             }
         });
 
-        AdView mAdView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+
+
+
     }
 
     @Override
@@ -610,5 +610,40 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             });
         }
 
+    }
+
+    class StatusOfBanner extends AsyncTask<Void,Void,Void>{
+        String statusCode = "N";
+        @Override
+        protected Void doInBackground(Void... voids) {
+            String url = "ads_sts";
+            com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
+                    .url(conf.getDomen()+ url)
+                    .build();
+            Call call = client.newCall(request);
+            try{
+                Response response = call.execute();
+                if(response.code()==200){
+                    JSONObject jsonObject = new JSONObject(response.body().string());
+                    if(!jsonObject.getString("status").equals("N")){
+                        statusCode = jsonObject.getString("status");
+                    }
+                }
+            }catch (Exception e){}
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            AdView mAdView = findViewById(R.id.adView);
+            if(!statusCode.equals("N")){
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+            }else{
+                mAdView.setVisibility(View.GONE);
+            }
+
+        }
     }
 }
