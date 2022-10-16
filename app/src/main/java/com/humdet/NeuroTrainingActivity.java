@@ -18,6 +18,8 @@ import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -147,7 +149,12 @@ public class NeuroTrainingActivity extends AppCompatActivity implements Location
                 saveNewFace.setTitleProgress(array[12]);
                 saveNewFace.setUploadFromActivity(true);
                 saveNewFace.setContext(NeuroTrainingActivity.this);
-                saveNewFace.execute();
+                saveNewFace.setToastText(array[20]);
+                if(isOnline()){
+                    saveNewFace.execute();
+                }else{
+                    Toast.makeText(getApplicationContext(),array[35],Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -242,22 +249,7 @@ public class NeuroTrainingActivity extends AppCompatActivity implements Location
             }
         }
     }
-    public void save(String strmas,String name){
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final File file = new File(Environment.getExternalStorageDirectory() + File.separator + "Documents" + File.separator + name+".txt");
-                try{
-                    file.createNewFile();
-                    FileWriter fileOutputStream = new FileWriter(file);
-                    fileOutputStream.write(strmas);
-                    fileOutputStream.close();
-                }catch (Exception e){e.printStackTrace();}
-            }
-        });
-        t.start();
 
-    }
     Uri uriToSend=null;
     private String getRealPathFromUri(Uri contentUri){
         String result=null;
@@ -285,5 +277,11 @@ public class NeuroTrainingActivity extends AppCompatActivity implements Location
             return network_enabled;
         }
         return false;
+    }
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

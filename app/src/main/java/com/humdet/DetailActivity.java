@@ -72,7 +72,7 @@ public class DetailActivity extends AppCompatActivity {
 
         try{
             Picasso.with(this)
-                    .load(conf.getDomen()+"image?imgname="+jsonObject.getString("photoName")+".jpg")
+                    .load(conf.getDomen()+"image?imgname="+jsonObject.getString("photoName")+".jpg/")
                     .placeholder(R.drawable.hum_icon)
                     .fit().centerCrop()
                     .into(personImg, new Callback() {

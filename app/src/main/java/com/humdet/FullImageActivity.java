@@ -29,7 +29,7 @@ public class FullImageActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         try{
             Picasso.with(this)
-                    .load(conf.getDomen()+"image?imgname="+getIntent().getStringExtra("photoName")+".jpg")
+                    .load(conf.getDomen()+"image?imgname="+getIntent().getStringExtra("photoName")+".jpg/")
                     .placeholder(R.drawable.hum_icon)
                     .into(personImg, new Callback() {
                         @Override

@@ -3,6 +3,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -121,9 +124,8 @@ public class CustomArrayAdapter extends BaseAdapter{
 
 
 
-
         Picasso.with(context)
-                .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg")
+                .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg/")
                 .placeholder(R.drawable.progress_animation)
                 .error(R.drawable.person_ic)
                 .fit().centerCrop()
@@ -140,7 +142,7 @@ public class CustomArrayAdapter extends BaseAdapter{
 
         if(urls[1]!=null){
             Picasso.with(context)
-                    .load(conf.getDomen()+"image?imgname="+urls[1]+"_SMALL.jpg")
+                    .load(conf.getDomen()+"image?imgname="+urls[1]+"_SMALL.jpg/")
                     .placeholder(R.drawable.progress_animation)
                     .error(R.drawable.person_ic)
                     .fit().centerCrop()
@@ -158,7 +160,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         }
         if(urls[2]!=null){
             Picasso.with(context)
-                    .load(conf.getDomen()+"image?imgname="+urls[2]+"_SMALL.jpg")
+                    .load(conf.getDomen()+"image?imgname="+urls[2]+"_SMALL.jpg/")
                     .placeholder(R.drawable.progress_animation)
                     .error(R.drawable.person_ic)
                     .fit().centerCrop()
@@ -205,7 +207,7 @@ public class CustomArrayAdapter extends BaseAdapter{
     }
     private void showAlertDialog(String imgName){
         Picasso.with(context)
-                .load(conf.getDomen()+"image?imgname="+imgName+".jpg")
+                .load(conf.getDomen()+"image?imgname="+imgName+".jpg/")
                 .placeholder(R.drawable.progress_animation)
                 .error(R.drawable.person_ic)
                 .fit().centerCrop()

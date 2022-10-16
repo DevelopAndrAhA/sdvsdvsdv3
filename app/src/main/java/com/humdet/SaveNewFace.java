@@ -1,5 +1,6 @@
 package com.humdet;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -36,9 +37,11 @@ public class SaveNewFace {
     private Context context;
     private boolean uploadFromActivity;
     OkHttpClient client = new OkHttpClient();
-
+    boolean bool = false;
+    String toastText = "";
     public SaveNewFace(Context context) {
         mSettings = context.getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
+        bool = mSettings.getBoolean("save_photo",false);
     }
     public void execute(){
         try{
@@ -50,7 +53,6 @@ public class SaveNewFace {
     void sendData() throws IOException {
         ProgressDialog dialog = null;
         int city_id = mSettings.getInt("city_id",0);
-        boolean  delFlag = mSettings.getBoolean("save_photo",false);
 
         if(uploadFromActivity){
             dialog = new ProgressDialog(context);
@@ -69,7 +71,7 @@ public class SaveNewFace {
                 .addFormDataPart("lng", lng+"")
                 .build();
 
-        Request request = new Request.Builder().url(conf.getDomen()+"new_face").post(formBody).build();
+        Request request = new Request.Builder().url(conf.getDomen()+"new_face/").post(formBody).build();
 
         ProgressDialog tmpDialog = dialog;
         client.newCall(request)
@@ -84,9 +86,14 @@ public class SaveNewFace {
                                 tmpDialog.dismiss();
                             }
                         }
-                        boolean bool = mSettings.getBoolean("save_photo",false);
                         if(!bool){
                             largePohto.delete();
+                            Activity activity = (Activity) context;
+                            activity.runOnUiThread(new Runnable() {
+                                public void run() {
+                                    Toast.makeText(context,toastText,Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
                         // Do something with the response
                     }
@@ -178,5 +185,13 @@ public class SaveNewFace {
 
     public void setTitleProgress(String titleProgress) {
         this.titleProgress = titleProgress;
+    }
+
+    public String getToastText() {
+        return toastText;
+    }
+
+    public void setToastText(String toastText) {
+        this.toastText = toastText;
     }
 }

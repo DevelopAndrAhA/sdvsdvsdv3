@@ -49,6 +49,7 @@
         <item>In the service, the language changes the next time the application is started</item>
         <item>Search by city</item>
         <item>(try changing the date or city)</item>
+        <item>No internet connection</item>
     </string-array>
     <string-array name="app_lang_ru">
         <item>Скрыть</item>
@@ -86,6 +87,7 @@
         <item>В сервисе язык меняется при след.запуске приложения</item>
         <item>Поиск по городу</item>
         <item>(попробуйте изменить дату или город)</item>
+        <item>Нет соединения с интернетом</item>
     </string-array>
     <string-array name="app_lang_ar">
         <item>يخفي</item>
@@ -123,6 +125,7 @@
         <item>في الخدمة ، تتغير اللغة في المرة التالية التي يتم فيها بدء التطبيق</item>
         <item>البحث عن طريق المدينة</item>
         <item>حاول تغيير التاريخ أو المدينة</item>
+        <item>لا يوجد اتصال بالإنترنت</item>
     </string-array>
 
 

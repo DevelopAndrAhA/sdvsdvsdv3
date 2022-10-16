@@ -15,11 +15,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.icu.util.Calendar;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -148,7 +151,12 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         buttonSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new SearchTask().execute();
+                 if(isOnline()){
+                     new SearchTask().execute();
+                }else{
+                    Toast.makeText(SearchActivity.this,array[35],Toast.LENGTH_LONG).show();
+                }
+
             }
         });
         TextView datelabel = findViewById(R.id.dateLabel);
@@ -327,7 +335,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             //byte[] cropByteArray = stream.toByteArray();
             OkHttpClient client = new OkHttpClient();
             try {
-                String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0&city_id="+city_id;
+                String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0&city_id="+city_id+"/";
                 com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
                         .url(conf.getDomen()+ url)
                         .build();
@@ -415,5 +423,12 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             }
         });
         builderSingle.show();
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

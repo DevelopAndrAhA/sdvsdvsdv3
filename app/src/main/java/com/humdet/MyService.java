@@ -27,6 +27,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.Image;
 import android.media.ImageReader;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -155,7 +157,6 @@ public class MyService extends Service {
 
     @Override
     public void onCreate() {
-        new SaveNewFace(getApplicationContext());
         super.onCreate();
         mSettings = getSharedPreferences(new Conf().getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
@@ -479,7 +480,12 @@ public class MyService extends Service {
                         }
                     }
                     saveNewFace.setLargePohto(file);
-                    saveNewFace.execute();
+                    if(isOnline()){
+                        saveNewFace.execute();
+                    }else{
+                        Toast.makeText(getApplicationContext(),array[35],Toast.LENGTH_LONG).show();
+                    }
+
                 }
             };
 
@@ -488,7 +494,7 @@ public class MyService extends Service {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MyService.this, "Image saved", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MyService.this, array[20], Toast.LENGTH_SHORT).show();
                     createCameraPreview();
                 }
             };
@@ -970,5 +976,10 @@ public class MyService extends Service {
         Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width,height, filter);
         return newBitmap;
     }
-
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
 }

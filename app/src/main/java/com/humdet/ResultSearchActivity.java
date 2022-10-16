@@ -12,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -139,7 +140,7 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
         if(isOnline()){
             getDataWithoutMap();
         }else if(!isOnline()){
-            Toast.makeText(ResultSearchActivity.this,"Нет связи с интернетом!",Toast.LENGTH_LONG).show();
+            Toast.makeText(ResultSearchActivity.this,array[35],Toast.LENGTH_LONG).show();
         }
         swipeRefreshLayout.setRefreshing(true);
 
@@ -148,7 +149,7 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
 
     public void getDataWithoutMap(){
         JSONArray[] jsonArray = new JSONArray[1];
-        String url = "getFirstData4imgs";
+        String url = "getFirstData4imgs/";
         com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
                 .url(conf.getDomen()+ url)
                 .build();
@@ -169,6 +170,7 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                         jsonArray[0] = new JSONArray(res);
                     }catch (Exception e){}
                     if(jsonArray[0] != null){
+                        Log.e("jsonArray",jsonArray[0].toString());
                         for(int i=0;i<jsonArray[0].length();i++){
                             String[] urlMas3 = new String[3];
                             JSONObject [] jsonObject = new JSONObject[3];
@@ -193,6 +195,7 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                         runOnUiThread(new Runnable() {
                             public void run() {
                                 adapter.alertDialogBuilder();
+                                listView.setAdapter(adapter);
                             }
                         });
                         swipeRefreshLayout.postDelayed(new Runnable() {

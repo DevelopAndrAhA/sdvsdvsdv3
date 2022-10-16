@@ -21,6 +21,8 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -199,7 +201,11 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         });
 
         img_activity.setOnClickListener(e -> {
-            getDataWithoutMap();
+            if(isOnline()){
+                getDataWithoutMap();
+            }else{
+                Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
+            }
         });
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -219,8 +225,14 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         }
 
 
-        getData();
-        new StatusOfBanner().execute();
+        if(isOnline()){
+            getData();
+            new StatusOfBanner().execute();
+        }else{
+            Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
+        }
+
+
 
 
 
@@ -510,7 +522,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         dialog.setCancelable(false);
         dialog.show();
 
-            String url = "getFirstData4imgs";
+            String url = "getFirstData4imgs/";
             com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
                     .url(conf.getDomen()+ url)
                     .build();
@@ -548,7 +560,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         dialog.setCancelable(false);
         dialog.show();
         Request request = new Request.Builder()
-                .url(conf.getDomen()+ "getInitData?lat="+lat+"&lng="+lng)
+                .url(conf.getDomen()+ "getInitData?lat="+lat+"&lng="+lng+"/")
                 .build();
         Call call = client.newCall(request);
         call.enqueue(new Callback() {
@@ -576,7 +588,13 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                downloadImages();
+
+                if(isOnline()){
+                    downloadImages();
+                }else{
+                    Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
+                }
+
             }
         }
         if (dialog.isShowing()) {
@@ -587,7 +605,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     public void downloadImages(){
         for(int i=0;i<humDataList.size();i++){
             Request request = new Request.Builder()
-                    .url(conf.getDomen()+ "image?imgname="+humDataList.get(i).getPhotoName()+"_SMALL.jpg")
+                    .url(conf.getDomen()+ "image?imgname="+humDataList.get(i).getPhotoName()+"_SMALL.jpg/")
                     .build();
             Call call = client.newCall(request);
             int finalI = i;
@@ -616,7 +634,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         String statusCode = "N";
         @Override
         protected Void doInBackground(Void... voids) {
-            String url = "ads_sts";
+            String url = "ads_sts/";
             com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
                     .url(conf.getDomen()+ url)
                     .build();
@@ -645,5 +663,11 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             }
 
         }
+    }
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }
