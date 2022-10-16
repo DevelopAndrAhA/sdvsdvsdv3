@@ -44,6 +44,8 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
     List<String[]> list = null;
     List<JSONObject[]> jsonObjects = null;
     SwipeRefreshLayout swipeRefreshLayout = null;
+    TextView textView = null;
+    TextView textView3 = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,8 +55,8 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
 
         String custom_font = "fonts/JackportRegularNcv.ttf";
         Typeface CF = Typeface.createFromAsset(getAssets(), custom_font);
-        TextView textView = findViewById(R.id.textView2);
-        TextView textView3 = findViewById(R.id.textView3);
+        textView = findViewById(R.id.textView2);
+        textView3 = findViewById(R.id.textView3);
         textView.setTypeface(CF);
         textView3.setTypeface(CF);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
@@ -169,7 +171,7 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                     try{
                         jsonArray[0] = new JSONArray(res);
                     }catch (Exception e){}
-                    if(jsonArray[0] != null){
+                    if(jsonArray[0] != null && jsonArray[0].length()!=0){
                         Log.e("jsonArray",jsonArray[0].toString());
                         for(int i=0;i<jsonArray[0].length();i++){
                             String[] urlMas3 = new String[3];
@@ -196,6 +198,9 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                             public void run() {
                                 adapter.alertDialogBuilder();
                                 listView.setAdapter(adapter);
+                                listView.setVisibility(View.VISIBLE);
+                                textView.setVisibility(View.GONE);
+                                textView3.setVisibility(View.GONE);
                             }
                         });
                         swipeRefreshLayout.postDelayed(new Runnable() {
@@ -205,7 +210,20 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                             }
                         }, 3000);
                     }else{
-                        Toast.makeText(ResultSearchActivity.this,array[22],Toast.LENGTH_SHORT).show();
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                textView.setVisibility(View.VISIBLE);
+                                textView3.setVisibility(View.VISIBLE);
+                                listView.setVisibility(View.GONE);
+                            }
+                        });
+                        swipeRefreshLayout.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                swipeRefreshLayout.setRefreshing(false);
+                            }
+                        }, 3000);
+
                     }
             }
         });

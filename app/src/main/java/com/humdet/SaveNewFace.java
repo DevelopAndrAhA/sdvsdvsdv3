@@ -88,12 +88,14 @@ public class SaveNewFace {
                         }
                         if(!bool){
                             largePohto.delete();
-                            Activity activity = (Activity) context;
-                            activity.runOnUiThread(new Runnable() {
-                                public void run() {
-                                    Toast.makeText(context,toastText,Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                            try{
+                                Activity activity = (Activity) context;
+                                activity.runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        Toast.makeText(context,toastText,Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }catch (Exception e){}
                         }
                         // Do something with the response
                     }
