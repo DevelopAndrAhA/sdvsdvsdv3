@@ -9,7 +9,7 @@ android {
     compileSdk 31
 
     defaultConfig {
-        applicationId "com.lesa_search"
+        applicationId "com.lesa_humdet"
         minSdk 22
         targetSdk 31
         maxSdkVersion 31
