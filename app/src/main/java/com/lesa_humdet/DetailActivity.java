@@ -43,7 +43,7 @@ public class DetailActivity extends AppCompatActivity {
     private String jsonObjectsStr;
     private JSONObject jsonObject = null;
     private ImageView personImg;
-    private TextView percent;
+    //private TextView percent;
     private TextView photoDate2;
     private int position;
     private JSONArray jsonArray;
@@ -55,7 +55,7 @@ public class DetailActivity extends AppCompatActivity {
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
         setContentView(R.layout.activity_detail);
         personImg = findViewById(R.id.personImg);
-        percent = findViewById(R.id.percent);
+        //percent = findViewById(R.id.percent);
         photoDate2 = findViewById(R.id.photoDate2);
         m_mapView = (MapView) findViewById(R.id.mapView);
         ProgressBar progressBar = findViewById(R.id.progressBar);
@@ -142,9 +142,9 @@ public class DetailActivity extends AppCompatActivity {
                 photoDate2.setText(array[9]+" "+jsonObject.getString("inp_date"));
             } catch (JSONException jsonException) {}
         }
-        try{
+        /*try{
             percent.setText(array[8]+" "+ Math.round(jsonObject.getDouble("percentage"))+"%");
-        }catch (Exception e){}
+        }catch (Exception e){}*/
 
         getSupportActionBar().setTitle(array[10]);
 

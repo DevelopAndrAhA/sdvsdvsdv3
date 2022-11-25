@@ -66,6 +66,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white" />
+            <Button
+                android:id="@+id/button6"
+                style="@style/aButton"
+                android:text="button5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white" />
 
             <ImageButton
                 android:id="@+id/settings_btn"

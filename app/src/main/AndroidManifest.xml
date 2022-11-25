@@ -11,9 +11,16 @@
         android:theme="@style/Theme.GOZ"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".HorizontalScrollActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".FullImageActivity"
             android:exported="false"
-            android:screenOrientation="portrait"  />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
@@ -30,13 +37,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-6491483931480160~1164124118"/>
+
         <activity
             android:name=".NeuroTrainingActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".DetailActivity"
             android:exported="false"
@@ -53,6 +59,9 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6491483931480160~1164124118" />
 
         <service
             android:name=".MyService"

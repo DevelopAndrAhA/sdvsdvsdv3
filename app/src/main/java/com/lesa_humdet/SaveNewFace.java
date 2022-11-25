@@ -53,6 +53,7 @@ public class SaveNewFace {
     void sendData() throws IOException {
         ProgressDialog dialog = null;
         int city_id = mSettings.getInt("city_id",0);
+        String deviceId = mSettings.getString("deviceId","*");
 
         if(uploadFromActivity){
             dialog = new ProgressDialog(context);
@@ -67,6 +68,7 @@ public class SaveNewFace {
                         RequestBody.create(MediaType.parse("text/plain"), largePohto))
                 .addFormDataPart("city_id", city_id+"")
                 .addFormDataPart("username", username)
+                .addFormDataPart("deviceId", deviceId)
                 .addFormDataPart("lat", lat+"")
                 .addFormDataPart("lng", lng+"")
                 .build();
@@ -196,4 +198,6 @@ public class SaveNewFace {
     public void setToastText(String toastText) {
         this.toastText = toastText;
     }
+
+
 }

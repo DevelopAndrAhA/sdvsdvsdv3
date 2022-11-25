@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -116,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
         per.getMyApplicationPermissions();
+        getDeviceId(editor,getApplicationContext());
         m_mapView.onCreate(savedInstanceState);
         m_mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -250,7 +252,15 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             }
         });
 
+        Button button5 = findViewById(R.id.button6);
 
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),HorizontalScrollActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
     }
@@ -660,6 +670,16 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             }
 
         }
+    }
+
+
+    public void getDeviceId(SharedPreferences.Editor editor,Context context) {
+
+        String deviceId = Settings.Secure.getString(
+                context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        editor.putString("deviceId",deviceId);
+        editor.apply();
     }
     public boolean isOnline() {
         ConnectivityManager cm =
