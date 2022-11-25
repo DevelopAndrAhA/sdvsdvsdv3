@@ -142,9 +142,6 @@ public class DetailActivity extends AppCompatActivity {
                 photoDate2.setText(array[9]+" "+jsonObject.getString("inp_date"));
             } catch (JSONException jsonException) {}
         }
-        /*try{
-            percent.setText(array[8]+" "+ Math.round(jsonObject.getDouble("percentage"))+"%");
-        }catch (Exception e){}*/
 
         getSupportActionBar().setTitle(array[10]);
 
@@ -159,23 +156,6 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
 
-        /*personImg.setOnTouchListener(new com.humdet.util.OnSwipeTouchListener(DetailActivity.this) {
-            public void onSwipeTop() {
-            }
-            public void onSwipeRight() {
-                try{
-                    Toast.makeText(DetailActivity.this,jsonArray.get(position-1).toString(),Toast.LENGTH_SHORT).show();
-                }catch (Exception e){}
-            }
-            public void onSwipeLeft() {
-                try{
-                    Toast.makeText(DetailActivity.this,jsonArray.get(position+1).toString(),Toast.LENGTH_SHORT).show();
-                }catch (Exception e){}
-            }
-            public void onSwipeBottom() {
-            }
-
-        });*/
 
     }
     @Override

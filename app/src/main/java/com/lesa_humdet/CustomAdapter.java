@@ -16,24 +16,69 @@ package com.lesa_humdet;
  * limitations under the License.
  */
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Random;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Provide views to RecyclerView with data from mDataSet.
  */
 public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
+
+
+    private MyPermissions per = null;
+    private SharedPreferences mSettings;
+    private MapView m_mapView;
+    private String [] array;
+    private Conf conf = new Conf();
+
+    private String jsonObjectsStr;
+    private JSONObject jsonObject = null;
+    private ImageView personImg;
+    //private TextView percent;
+    private TextView photoDate2;
+    private int position;
+    private JSONArray jsonArray;
+
+
     Context context;
+    Activity activity;
+    Bundle savedInstanceState;
     private static final String TAG = "CustomAdapter";
 
     private String[] mDataSet;
@@ -43,66 +88,132 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
      * Provide a reference to the type of views that you are using (custom ViewHolder)
      */
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView textView;
-        private final LinearLayout linearLayout;
 
         public ViewHolder(View v) {
             super(v);
-            textView = (TextView) v.findViewById(R.id.textView);
-            linearLayout = (LinearLayout) v.findViewById(R.id.linear);
+            Mapbox.getInstance(context, "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
+            mSettings = context.getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
+            personImg = v.findViewById(R.id.personImg);
+            //percent = findViewById(R.id.percent);
+            photoDate2 = v.findViewById(R.id.photoDate2);
+            m_mapView = (MapView) v.findViewById(R.id.mapView);
+            ProgressBar progressBar = v.findViewById(R.id.progressBar);
+            try{
+                jsonObject = new JSONObject(activity.getIntent().getStringExtra("jsonObject"));
+                position = activity.getIntent().getIntExtra("position",0);
+                jsonObjectsStr = activity.getIntent().getStringExtra("allJsonObject");
+                jsonArray = new JSONArray(jsonObjectsStr);
+            }catch (Exception e){}
 
-            // Define click listener for the ViewHolder's View.
-            linearLayout.setOnClickListener(new View.OnClickListener() {
+            try{
+                Picasso.with(context)
+                        .load(conf.getDomen()+"image?imgname="+jsonObject.getString("photoName")+".jpg/")
+                        .placeholder(R.drawable.hum_icon)
+                        .fit().centerCrop()
+                        .into(personImg, new Callback() {
+                            @Override
+                            public void onSuccess() {
+                                progressBar.setVisibility(View.GONE);
+                                personImg.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        try{
+                                            Intent intent = new Intent(context,FullImageActivity.class);
+                                            intent.putExtra("photoName",jsonObject.getString("photoName"));
+                                            activity.startActivity(intent);
+                                        }catch (Exception e){}
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+                        });
+            }catch (Exception e){}
+            per.getMyApplicationPermissions();
+            m_mapView.onCreate(savedInstanceState);
+            m_mapView.getMapAsync(new OnMapReadyCallback() {
                 @Override
-                public void onClick(View v) {
-                    Toast.makeText(context,getBindingAdapterPosition() + " clicked.",Toast.LENGTH_LONG).show();
+                public void onMapReady(@NonNull MapboxMap mapboxMap) {
+                    mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+                        @Override
+                        public void onStyleLoaded(@NonNull Style style) {
+                        }
+                    });
+
+                    Icon paellaIcon = IconFactory.getInstance(context).defaultMarker();
+                    //Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bmp)
+                    try{
+                        mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(jsonObject.getDouble("lat"), jsonObject.getDouble("lng"))).setTitle("").setIcon(paellaIcon))
+                                .setTitle(array[31]);
+
+                        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(jsonObject.getDouble("lat"), jsonObject.getDouble("lng")), 13));
+
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(new LatLng(jsonObject.getDouble("lat"), jsonObject.getDouble("lng")))      // Sets the center of the map to location user
+                                .zoom(17)                   // Sets the zoom
+                                .bearing(90)                // Sets the orientation of the camera to east
+                                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                                .build();                   // Creates a CameraPosition from the builder
+                        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                    }catch (Exception e){e.printStackTrace();}
+
+                }
+            });
+            int lang = mSettings.getInt(conf.getLANG(),0);
+            if(lang==conf.getRU()){
+                array = context.getResources().getStringArray(R.array.app_lang_ru);
+            }else if(lang==conf.getEN()){
+                array = context.getResources().getStringArray(R.array.app_lang_en);
+            }else if(lang==conf.getAR()){
+                array = context.getResources().getStringArray(R.array.app_lang_ar);
+            }else{
+                array = context.getResources().getStringArray(R.array.app_lang_ru);
+            }
+
+            try{
+                photoDate2.setText(array[9]+" "+jsonObject.getString("inpDate"));
+            }catch (Exception e){
+                try {
+                    photoDate2.setText(array[9]+" "+jsonObject.getString("inp_date"));
+                } catch (JSONException jsonException) {}
+            }
+
+            Button pingBtn = v.findViewById(R.id.pingBtn);
+            pingBtn.setText(array[25]);
+            pingBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(context,array[26],Toast.LENGTH_SHORT).show();
                 }
             });
         }
 
-        public TextView getTextView() {
-            return textView;
-        }
-
-        public LinearLayout getLinearLayout() {
-            return linearLayout;
-        }
     }
-    // END_INCLUDE(recyclerViewSampleViewHolder)
-
-    /**
-     * Initialize the dataset of the Adapter.
-     *
-     * @param dataSet String[] containing the data to populate views to be used by RecyclerView.
-     */
-    public CustomAdapter(String[] dataSet,Context context) {
+    public CustomAdapter(String[] dataSet, Context context, Activity activity, Bundle savedInstanceState) {
         mDataSet = dataSet;
         this.context = context;
+        this.activity = activity;
+        this.savedInstanceState = savedInstanceState;
+        per = new MyPermissions(context,activity);
     }
 
-    // BEGIN_INCLUDE(recyclerViewOnCreateViewHolder)
-    // Create new views (invoked by the layout manager)
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-        // Create a new view.
         View v = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.text_row_item, viewGroup, false);
         return new ViewHolder(v);
     }
-    // END_INCLUDE(recyclerViewOnCreateViewHolder)
-
-    // BEGIN_INCLUDE(recyclerViewOnBindViewHolder)
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        viewHolder.getTextView().setText(mDataSet[position]);
-        viewHolder.getLinearLayout().setBackgroundColor(new Random(position).nextInt());
+        m_mapView.onStart();
     }
-    // END_INCLUDE(recyclerViewOnBindViewHolder)
-
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mDataSet.length;
     }
+
 }

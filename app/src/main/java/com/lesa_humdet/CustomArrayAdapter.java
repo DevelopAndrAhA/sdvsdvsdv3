@@ -63,7 +63,8 @@ public class CustomArrayAdapter extends BaseAdapter{
         imageView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(context,DetailActivity.class);
+                //Intent intent = new Intent(context,DetailActivity.class);
+                Intent intent = new Intent(context,HorizontalScrollActivity.class);
                 intent.putExtra("jsonObject",jsonObjects.get(position)[0].toString());
                 intent.putExtra("position",position);
                 intent.putExtra("allJsonObject",jsonData);
@@ -83,7 +84,8 @@ public class CustomArrayAdapter extends BaseAdapter{
                 imageView3.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Intent intent = new Intent(context,DetailActivity.class);
+                        //Intent intent = new Intent(context,DetailActivity.class);
+                        Intent intent = new Intent(context,HorizontalScrollActivity.class);
                         intent.putExtra("jsonObject",jsonObjects.get(position)[1].toString());
                         intent.putExtra("position",position+1);
                         intent.putExtra("allJsonObject",jsonData);
@@ -104,7 +106,8 @@ public class CustomArrayAdapter extends BaseAdapter{
                 imageView4.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Intent intent = new Intent(context,DetailActivity.class);
+                        //Intent intent = new Intent(context,DetailActivity.class);
+                        Intent intent = new Intent(context,HorizontalScrollActivity.class);
                         intent.putExtra("jsonObject",jsonObjects.get(position)[2].toString());
                         intent.putExtra("position",position+2);
                         intent.putExtra("allJsonObject",jsonData);
