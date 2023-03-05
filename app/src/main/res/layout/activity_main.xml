@@ -30,7 +30,8 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             app:adSize="BANNER"
-            app:adUnitId="ca-app-pub-3940256099942544/6300978111"></com.google.android.gms.ads.AdView>
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111">
+        </com.google.android.gms.ads.AdView>
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
@@ -63,13 +64,7 @@
             <Button
                 android:id="@+id/button4"
                 style="@style/aButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white" />
-            <Button
-                android:id="@+id/button6"
-                style="@style/aButton"
-                android:text="button5"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white" />

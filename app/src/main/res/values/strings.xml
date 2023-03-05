@@ -6,13 +6,21 @@
     <string name="title_activity_launch">LESA</string>
 
 
+    <string name="title_activity_main2">MainActivity2</string>
+
+
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string-array name="languages">
         <item>Русский</item>
         <item>English</item>
         <item>عربي</item>
     </string-array>
-
-
     <string-array name="app_lang_en">
         <item>Hide</item>
         <item>Download</item>
@@ -50,7 +58,11 @@
         <item>Search by city</item>
         <item>(try changing the date or city)</item>
         <item>No internet connection</item>
+        <item>Ok</item>
+        <item>From date</item>
+        <item>To date</item>
     </string-array>
+
     <string-array name="app_lang_ru">
         <item>Скрыть</item>
         <item>Загрузка</item>
@@ -88,6 +100,9 @@
         <item>Поиск по городу</item>
         <item>(попробуйте изменить дату или город)</item>
         <item>Нет соединения с интернетом</item>
+        <item>Ok</item>
+        <item>Начальная дата</item>
+        <item>Конечная дата</item>
     </string-array>
     <string-array name="app_lang_ar">
         <item>يخفي</item>
@@ -126,6 +141,9 @@
         <item>البحث عن طريق المدينة</item>
         <item>حاول تغيير التاريخ أو المدينة</item>
         <item>لا يوجد اتصال بالإنترنت</item>
+        <item>نعم</item>
+        <item>من التاريخ</item>
+        <item>ان يذهب في موعد</item>
     </string-array>
 
 

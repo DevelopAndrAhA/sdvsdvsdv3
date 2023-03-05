@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -89,7 +90,20 @@ public class SettingsActivity extends AppCompatActivity {
             editor.putString("city",cityName.getText().toString());
             editor.putInt("city_id",city_id);
             editor.apply();
-            Toast.makeText(SettingsActivity.this,array[19],Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+            builder.setTitle(array[21]);
+            builder.setMessage(array[19]);
+            builder.setPositiveButton(array[36], new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    finish();
+                }
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+
         });
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

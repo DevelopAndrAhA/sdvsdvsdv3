@@ -14,6 +14,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +48,11 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
     SwipeRefreshLayout swipeRefreshLayout = null;
     TextView textView = null;
     TextView textView3 = null;
+
+
+    Button searchBtn = null;
+    Button trainBtn = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +89,32 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
             textView3.setText(array[34]);
             getSupportActionBar().setTitle(array[7]);
         }
+
+        searchBtn = findViewById(R.id.button3);
+        trainBtn = findViewById(R.id.button4);
+        searchBtn.setText(array[2]);
+        trainBtn.setText(array[11]);
+
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),SearchActivity.class);
+                startActivity(intent );
+            }
+        });
+        trainBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),NeuroTrainingActivity.class);
+                startActivity(intent );
+            }
+        });
+
+        ImageButton settings_btn = findViewById(R.id.settings_btn);
+        settings_btn.setOnClickListener(e -> {
+            Intent intent2 = new Intent(this,SettingsActivity.class);
+            startActivity(intent2);
+        });
 
 
         try{

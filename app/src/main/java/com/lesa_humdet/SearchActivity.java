@@ -66,9 +66,12 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     SharedPreferences.Editor editor;
     Button buttonSearch = null;
     private FaceDetector faceDetector;
-    EditText dateEdit = null;
+    EditText fromDate = null;
+    EditText toDate = null;
     JSONArray jsonArray;
 
+    boolean fromDateBool = false;
+    boolean toDateBool = false;
 
     private SimilarityClassifier detector;
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
@@ -131,7 +134,11 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         getSupportActionBar().setTitle(array[2]);
         Button button = findViewById(R.id.button);
         EditText cityText = findViewById(R.id.editTextCity);
+        TextView fromDateTitle = findViewById(R.id.textView6);
+        TextView toDateTitle = findViewById(R.id.textView7);
         button.setText(array[3]);
+        fromDateTitle.setText(array[37]);
+        toDateTitle.setText(array[38]);
         cityText.setText(array[33]+" : "+mSettings.getString("city",""));
         cityText.setFocusable(false);
         cityText.setFocusableInTouchMode(false);
@@ -164,7 +171,8 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             now = Calendar.getInstance();
         }
-        dateEdit = findViewById(R.id.editTextDate2);
+        fromDate = findViewById(R.id.editTextDate2);
+        toDate = findViewById(R.id.editTextDate3);
 
         try{
             DatePickerDialog dpd = DatePickerDialog.newInstance(
@@ -174,12 +182,23 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                     now.get(Calendar.DAY_OF_MONTH)
             );
             DatePickerDialog finalDpd = dpd;
-            dateEdit.setFocusable(false);
-            dateEdit.setFocusableInTouchMode(false);
-            dateEdit.setClickable(true);
-            dateEdit.setOnClickListener(new View.OnClickListener() {
+            fromDate.setFocusable(false);
+            fromDate.setFocusableInTouchMode(false);
+            fromDate.setClickable(true);
+            fromDate.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    fromDateBool = true;
+                    finalDpd.show(getSupportFragmentManager(), "Datepickerdialog");
+                }
+            });
+            toDate.setFocusable(false);
+            toDate.setFocusableInTouchMode(false);
+            toDate.setClickable(true);
+            toDate.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    toDateBool = true;
                     finalDpd.show(getSupportFragmentManager(), "Datepickerdialog");
                 }
             });
@@ -202,13 +221,18 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             locDatemMonthStr=locDatemMonth+"";
         }
         String locDateYear = dateMas[5]+"-"+locDatemMonthStr+"-"+locDateDayStr;
-        dateEdit.setText(locDateYear);
+
+
+        fromDate.setText(locDateYear);
+        toDate.setText(locDateYear);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
 
 
+        fromDate = findViewById(R.id.editTextDate2);
+        toDate = findViewById(R.id.editTextDate3);
 
 
     }
@@ -310,12 +334,24 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
         monthOfYear = monthOfYear+1;
-        if(monthOfYear<10){
-            dateEdit.setText(year+"-0"+monthOfYear+"-"+dayOfMonth);
-        }else{
-            dateEdit.setText(year+"-"+monthOfYear+"-"+dayOfMonth);
+
+        if(fromDateBool){
+            if(monthOfYear<10){
+                fromDate.setText(year+"-0"+monthOfYear+"-"+dayOfMonth);
+            }else{
+                fromDate.setText(year+"-"+monthOfYear+"-"+dayOfMonth);
+            }
+            fromDateBool = false;
+        }else if(toDateBool){
+            if(monthOfYear<10){
+                toDate.setText(year+"-0"+monthOfYear+"-"+dayOfMonth);
+            }else{
+                toDate.setText(year+"-"+monthOfYear+"-"+dayOfMonth);
+            }
+            toDateBool = false;
         }
     }
+
 
     class SearchTask extends AsyncTask<Void,Void,Void>{
         private ProgressDialog dialog;
@@ -329,12 +365,9 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
 
         @Override
         protected Void doInBackground(Void... voids) {
-            //ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            //faceBmp112_112.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            //byte[] cropByteArray = stream.toByteArray();
             OkHttpClient client = new OkHttpClient();
             try {
-                String url = "search?inpDate="+dateEdit.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0&city_id="+city_id+"/";
+                String url = "search?fromDate="+fromDate.getText().toString()+"&toDate"+toDate.getText().toString()+"&crop="+ masToSend+"&lat=0&lng=0&city_id="+city_id+"/";
                 com.squareup.okhttp.Request request1 = new com.squareup.okhttp.Request.Builder()
                         .url(conf.getDomen()+ url)
                         .build();

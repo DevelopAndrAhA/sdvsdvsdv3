@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -65,6 +66,17 @@ public class DetailActivity extends AppCompatActivity {
             jsonObjectsStr = getIntent().getStringExtra("allJsonObject");
             jsonArray = new JSONArray(jsonObjectsStr);
         }catch (Exception e){}
+        personImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try{
+                    Intent intent = new Intent(DetailActivity.this,FullImageActivity.class);
+                    intent.putExtra("photoName",jsonObject.getString("photoName"));
+                    startActivity(intent);
+                }catch (Exception e){}
+            }
+        });
+
 
         try{
             Picasso.with(this)
@@ -75,18 +87,7 @@ public class DetailActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess() {
                             progressBar.setVisibility(View.GONE);
-                            personImg.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    try{
-                                        Intent intent = new Intent(DetailActivity.this,FullImageActivity.class);
-                                        intent.putExtra("photoName",jsonObject.getString("photoName"));
-                                        startActivity(intent);
-                                    }catch (Exception e){}
-                                }
-                            });
                         }
-
                         @Override
                         public void onError() {
 

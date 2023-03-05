@@ -63,8 +63,7 @@ public class CustomArrayAdapter extends BaseAdapter{
         imageView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(context,DetailActivity.class);
-                Intent intent = new Intent(context,HorizontalScrollActivity.class);
+                Intent intent = new Intent(context,DetailActivity.class);
                 intent.putExtra("jsonObject",jsonObjects.get(position)[0].toString());
                 intent.putExtra("position",position);
                 intent.putExtra("allJsonObject",jsonData);
@@ -84,8 +83,7 @@ public class CustomArrayAdapter extends BaseAdapter{
                 imageView3.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //Intent intent = new Intent(context,DetailActivity.class);
-                        Intent intent = new Intent(context,HorizontalScrollActivity.class);
+                        Intent intent = new Intent(context,DetailActivity.class);
                         intent.putExtra("jsonObject",jsonObjects.get(position)[1].toString());
                         intent.putExtra("position",position+1);
                         intent.putExtra("allJsonObject",jsonData);
@@ -106,8 +104,7 @@ public class CustomArrayAdapter extends BaseAdapter{
                 imageView4.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //Intent intent = new Intent(context,DetailActivity.class);
-                        Intent intent = new Intent(context,HorizontalScrollActivity.class);
+                        Intent intent = new Intent(context,DetailActivity.class);
                         intent.putExtra("jsonObject",jsonObjects.get(position)[2].toString());
                         intent.putExtra("position",position+2);
                         intent.putExtra("allJsonObject",jsonData);
@@ -125,8 +122,6 @@ public class CustomArrayAdapter extends BaseAdapter{
         }
 
 
-
-
         Picasso.with(context)
                 .load(conf.getDomen()+"image?imgname="+urls[0]+"_SMALL.jpg/")
                 .placeholder(R.drawable.progress_animation)
@@ -141,7 +136,6 @@ public class CustomArrayAdapter extends BaseAdapter{
                     public void onError() {
                     }
                 });
-
 
         if(urls[1]!=null){
             Picasso.with(context)

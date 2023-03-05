@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         setContentView(R.layout.activity_main);
 
         m_mapView =  findViewById(R.id.mapView);
-        //m_mapView.getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS);
+
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -252,15 +252,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             }
         });
 
-        Button button5 = findViewById(R.id.button6);
 
-        button5.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),HorizontalScrollActivity.class);
-                startActivity(intent);
-            }
-        });
 
 
     }
