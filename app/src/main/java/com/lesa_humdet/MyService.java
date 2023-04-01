@@ -89,6 +89,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -393,6 +395,8 @@ public class MyService extends Service {
                     }, null);
         } catch (Exception e) {
             e.printStackTrace();
+            String error  = e.toString();
+            System.out.println(error);
             //Log.e(TAG,e.toString());
         }
     }
@@ -421,27 +425,25 @@ public class MyService extends Service {
             }
             int width = 640;
             int height = 480;
-            if (jpegSizes != null && 0 < jpegSizes.length) {
+            if (jpegSizes != null && jpegSizes.length > 0) {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
             }
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
-            List<Surface> outputSurfaces = new ArrayList<Surface>(2);
+            List<Surface> outputSurfaces = new ArrayList<>();
             outputSurfaces.add(reader.getSurface());
             outputSurfaces.add(new Surface(texture.getSurfaceTexture()));
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(reader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-            // Orientation
             int rotation = windowManager.getDefaultDisplay().getRotation();
-
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation)+90);
-
-            final File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "HUMDET");
+            captureBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 100);
+            File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "HUMDET");
             if(!dir.exists()){
                 dir.mkdir();
             }
-            final File file = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator +"HUMDET"+File.separator+ currTimestamp+".jpg");
+            final File file = new File(dir, currTimestamp+".jpg");
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -451,7 +453,7 @@ public class MyService extends Service {
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
-                        save(bytes);
+                        save(bytes, file);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -463,16 +465,13 @@ public class MyService extends Service {
                     }
                 }
 
-                private void save(byte[] bytes) throws IOException {
+                private void save(byte[] bytes, File file) throws IOException {
                     Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
-                    bitmap = resizeImage(bitmap,640,true);
+                    bitmap = resizeImage(bitmap, 640, true);
                     Matrix matrix = new Matrix();
                     matrix.postRotate(90);
                     Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
-
                     Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, true);
-
-
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                     rotatedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                     byte[] cropByteArray = stream.toByteArray();
@@ -481,24 +480,22 @@ public class MyService extends Service {
                         output = new FileOutputStream(file);
                         output.write(cropByteArray);
                     } finally {
-                        if (null != output) {
+                        if (output != null) {
                             output.close();
                         }
                     }
                     String path = compressImage(file.getAbsolutePath());
                     File tmpFile  = new File(path);
-                    Log.e("tmpFile",tmpFile.getAbsolutePath());
                     saveNewFace.setLargePohto(tmpFile);
                     if(isOnline()){
                         saveNewFace.execute();
                     }else{
                         Toast.makeText(getApplicationContext(),array[35],Toast.LENGTH_LONG).show();
                     }
-
                 }
             };
-
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
+
             final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
@@ -713,94 +710,55 @@ public class MyService extends Service {
             handler.post(r);
         }
     }
-    private void updateResults(long currTimestamp, final List<SimilarityClassifier.Recognition> mappedRecognitions,Bitmap crop ) {
+    private void updateResults(long currTimestamp, final List<SimilarityClassifier.Recognition> mappedRecognitions, Bitmap crop) {
         tracker.trackResults(mappedRecognitions, currTimestamp);
         trackingOverlay.postInvalidate();
         computingDetection = false;
-
-        Date date = new Date();
-        String dateStr = date.toLocaleString().split(" ")[0];
-
-        //Log.e(TAG,"updateResults");
-        if (mappedRecognitions.size() > 0) {
+        if (!mappedRecognitions.isEmpty()) {
             SimilarityClassifier.Recognition rec = mappedRecognitions.get(0);
-            if ((rec.getExtra() != null) && (rec.getTitle()==null||rec.getTitle().equals(""))) {
-                detector.register(currTimestamp+"", rec);
-                if(!(rec.getDate().equals(dateStr))&&rec.getDate().equals("")){
-                    if(crop!=null){
-                        SimilarityClassifier.Recognition finalRec = rec;
-                        Thread t = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                /*final File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "HUMDET"+ File.separator + currTimestamp+"_small"+".jpg");
-                                try (FileOutputStream out = new FileOutputStream(dir)) {
-                                    crop.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }*/
-                                try{
-                                    saveNewFace.setLat(lat);
-                                    saveNewFace.setLng(lng);
-                                }catch (Exception e){}
-                                saveNewFace.setUsername(currTimestamp+"");
-                                saveNewFace.setTitle(currTimestamp+"");
-                                float mas[][] = (float[][]) finalRec.getExtra();
-                                String masToSend = "";
-                                for(int i=0;i<mas[0].length;i++){
-                                    masToSend += mas[0][i];
-                                    if(i!=mas[0].length-1){
-                                        masToSend = masToSend+",";
-                                    }
+            if (rec.getExtra() != null && (rec.getTitle() == null || rec.getTitle().isEmpty())) {
+                detector.register(currTimestamp + "", rec);
+                String dateStr = new Date().toLocaleString().split(" ")[0];
+                if (!rec.getDate().equals(dateStr) && rec.getDate().isEmpty()) {
+                    if (crop != null) {
+                        ExecutorService executor = Executors.newFixedThreadPool(2);
+                        executor.submit(() -> {
+                            try {
+                                saveNewFace.setLat(lat);
+                                saveNewFace.setLng(lng);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            saveNewFace.setUsername(currTimestamp + "");
+                            saveNewFace.setTitle(currTimestamp + "");
+                            float mas[][] = (float[][]) rec.getExtra();
+                            StringBuilder masToSend = new StringBuilder();
+                            for (int i = 0; i < mas[0].length; i++) {
+                                masToSend.append(mas[0][i]);
+                                if (i != mas[0].length - 1) {
+                                    masToSend.append(",");
                                 }
-                                saveNewFace.setCrop(masToSend);
                             }
+                            saveNewFace.setCrop(masToSend.toString());
                         });
-                        t.start();
-                        Thread t2 = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                takePicture(currTimestamp);
-                            }
-                        });
-                        t2.start();
+                        executor.submit(() -> takePicture(currTimestamp));
+                        executor.shutdown();
                     }
-                }else if(rec.getDate().equals("")){
-                    if(crop!=null){
-                        Thread t = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                /*final File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "HUMDET"+ File.separator + currTimestamp+"_small"+".jpg");
-                                try (FileOutputStream out = new FileOutputStream(dir)) {
-                                    crop.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }*/
-                            }
-                        });
-                        t.start();
-                        Thread t2 = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                takePicture(currTimestamp);
-                            }
-                        });
-                        t2.start();
+                } else if (rec.getDate().isEmpty()) {
+                    if (crop != null) {
+                        ExecutorService executor = Executors.newSingleThreadExecutor();
+                        executor.submit(() -> takePicture(currTimestamp));
+                        executor.shutdown();
                     }
                 }
-
-            }else if(rec.getExtra() != null){
-                rec = mappedRecognitions.get(0);
-                detector.register(currTimestamp+"", rec);
+            } else if (rec.getExtra() != null) {
+                detector.register(currTimestamp + "", rec);
             }
-
         }
 
-
     }
-
     private boolean onFacesDetected(long currTimestamp, List<Face> faces) {
-        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-        Bitmap crop = null;
+        Bitmap cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
         final Canvas canvas = new Canvas(cropCopyBitmap);
         final Paint paint = new Paint();
         paint.setColor(Color.TRANSPARENT);
@@ -840,6 +798,7 @@ public class MyService extends Service {
                 float confidence = -1f;
                 Integer color = Color.BLUE;
                 Object extra = null;
+                Bitmap crop = null;
                 try{
                     crop = Bitmap.createBitmap(portraitBmp,
                             (int) faceBB.left,
@@ -850,7 +809,6 @@ public class MyService extends Service {
                 if(crop!=null){
                     final long startTime = SystemClock.uptimeMillis();
                     final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp, true);
-                    lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                     if (resultsAux.size() > 0) {
                         SimilarityClassifier.Recognition result = resultsAux.get(0);
                         extra = result.getExtra();
@@ -867,14 +825,14 @@ public class MyService extends Service {
                     }
                     final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition("0", label, confidence, boundingBox,"");
                     result.setColor(color);
-                    result.setLocation(boundingBox);
                     result.setExtra(extra);
                     result.setCrop(crop);
+                    result.setLocation(boundingBox);
                     mappedRecognitions.add(result);
                 }
             }
         }
-        updateResults(currTimestamp, mappedRecognitions,crop);
+        updateResults(currTimestamp, mappedRecognitions, Bitmap.createBitmap(cropCopyBitmap));
         return true;
     }
     @Override
@@ -921,7 +879,6 @@ public class MyService extends Service {
     ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(final ImageReader reader) {
-            // We need wait until we have some size from onPreviewSizeChosen
             if (previewWidth == 0 || previewHeight == 0) {
                 return;
             }
@@ -930,11 +887,9 @@ public class MyService extends Service {
             }
             try {
                 final Image image = reader.acquireLatestImage();
-
                 if (image == null) {
                     return;
                 }
-
                 final Image.Plane[] planes = image.getPlanes();
                 fillBytes(planes, yuvBytes);
                 yRowStride = planes[0].getRowStride();
@@ -975,7 +930,6 @@ public class MyService extends Service {
             }
         }
     };
-
 
     public Bitmap resizeImage(Bitmap realImage, float maxImageSize,boolean filter) {
         float ratio = Math.min((float) maxImageSize / realImage.getWidth(),(float) maxImageSize / realImage.getHeight());
