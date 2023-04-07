@@ -28,7 +28,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -88,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     Button trainBtn = null;
 
     OkHttpClient client = new OkHttpClient();
-
+    int city_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(!Settings.canDrawOverlays(this)){
-                // ask for setting
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
                 startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION);
@@ -130,8 +128,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 });
 
                 Icon paellaIcon = IconFactory.getInstance(MainActivity.this).defaultMarker();
-                //Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bmp)
-                Marker marker =  mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(lat, lng)).setTitle("").setIcon(paellaIcon));
+                mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(lat, lng)).setTitle("").setIcon(paellaIcon));
                 mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(@NonNull Marker marker) {
@@ -149,8 +146,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 }else{
                     cityChanged(mapboxMap);
                 }
-
-
 
             }
         });
@@ -193,19 +188,11 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         });
 
         ImageButton settings_btn = findViewById(R.id.settings_btn);
-        ImageButton img_activity = findViewById(R.id.img_activity);
         settings_btn.setOnClickListener(e -> {
             Intent intent2 = new Intent(this,SettingsActivity.class);
             startActivity(intent2);
         });
 
-        img_activity.setOnClickListener(e -> {
-            if(isOnline()){
-                getDataWithoutMap();
-            }else{
-                Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
-            }
-        });
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 &&
@@ -222,41 +209,18 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         if(providerStatus(locationManager)){
             onLocationChanged(networkLoc);
         }
-
-
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
         if(isOnline()){
             getData();
             new StatusOfBanner().execute();
         }else{
             Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
         }
-
-
-
-
-
-
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if(Settings.canDrawOverlays(this)){
-                Intent intentService = new Intent(MainActivity.this,MyService.class);
-                startService(intentService);
-            }else{
-                Toast.makeText(MainActivity.this,array[30],Toast.LENGTH_LONG).show();
-            }
-        }
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-            }
-        });
-
-
-
-
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -346,9 +310,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 trainBtn.setText(array[11]);
                 String city = mSettings.getString("city","");
 
-                if(city.equals("")){
-                    showCountryAlert(mapboxMap);
-                }else{
+                if(!city.equals("")){
                     cityChanged(mapboxMap);
                 }
                 alert.dismiss();
@@ -360,9 +322,13 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
     }
+
+
+
     @Override
     protected void onStart() {
         super.onStart();
+        Log.e("onStart","onStart");
         if (m_mapView != null) {
             m_mapView.onStart();
             cityChanged(m_map);
@@ -372,6 +338,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     public void onStop() {
         super.onStop();
+        Log.e("onStop","onStop");
         if (m_mapView != null) {
             m_mapView.onStop();
         }
@@ -380,6 +347,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onResume() {
         super.onResume();
+        Log.e("onResume","onResume");
         if (m_mapView != null) {
             m_mapView.onResume();
         }
@@ -388,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onPause() {
         super.onPause();
+        Log.e("onPause","onPause");
         if (m_mapView != null) {
             m_mapView.onPause();
         }
@@ -396,6 +365,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.e("onSaveInstanceState","onSaveInstanceState");
         if (m_mapView != null) {
             m_mapView.onSaveInstanceState(outState);
         }
@@ -404,6 +374,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     public void onLowMemory() {
         super.onLowMemory();
+        Log.e("onLowMemory","onLowMemory");
         if (m_mapView != null) {
             m_mapView.onLowMemory();
         }
@@ -412,6 +383,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.e("onDestroy","onDestroy");
         if (m_mapView != null) {
             m_mapView.onDestroy();
         }
@@ -454,104 +426,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         return false;
     }
 
-    int city_id = 0;
-    public void showCountryAlert(MapboxMap mapboxMap){
-        AlohaDb alohaDb = new AlohaDb(MainActivity.this);
-        SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
-        alohaDb.iniDb(sqLiteDatabase);
-        List<Country> list = alohaDb.getAllCountry();
 
-
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
-        builderSingle.setIcon(R.drawable.location_icon);
-        builderSingle.setTitle(array[27]);
-
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
-        for(int i=0;i<list.size();i++){
-            arrayAdapter.add(list.get(i).getName());
-        }
-        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                List<Region> regions = alohaDb.getRegions(which);
-                final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
-                for(int i=0;i<regions.size();i++){
-                    arrayAdapterReg.add(regions.get(i).getName());
-                }
-
-
-                AlertDialog.Builder builderInnerRegion = new AlertDialog.Builder(MainActivity.this);
-                builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        List<City> cities = alohaDb.getCities(regions.get(i).getId());
-                        final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
-                        for(int k=0;k<cities.size();k++){
-                            arrayCity.add(cities.get(k).getName());
-                        }
-
-                        AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(MainActivity.this);
-                        builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int c) {
-                                editor.putString("city",arrayCity.getItem(c));
-                                editor.putInt("city_id",cities.get(c).getId());
-                                editor.apply();
-                                city_id = cities.get(c).getId();
-                                Log.e("city_id",city_id+"");
-                                cityChanged(mapboxMap);
-                                dialog.dismiss();
-                                Toast.makeText(MainActivity.this,array[19],Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        builderInnerCity.show();
-                    }
-                });
-                builderInnerRegion.show();
-            }
-        });
-        builderSingle.show();
-    }
-
-
-    public void getDataWithoutMap(){
-        JSONArray[] jsonArray = new JSONArray[1];
-        ProgressDialog  dialog = new ProgressDialog(MainActivity.this);
-        dialog.setMessage(array[1]);
-        dialog.setCancelable(false);
-        dialog.show();
-
-            String url = "getFirstData4imgs/";
-            com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
-                    .url(conf.getDomen()+ url)
-                    .build();
-            Call call = client.newCall(request);
-            call.enqueue(new Callback() {
-                @Override
-                public void onFailure(Request request, IOException e) {}
-                @Override
-                public void onResponse(Response response) throws IOException {
-                    // Обработка результата
-                    String res = response.body().string();
-                    try{
-                        jsonArray[0] = new JSONArray(res);
-                        if (dialog.isShowing()) {
-                            dialog.dismiss();
-                        }
-                        if(jsonArray[0] != null){
-                            Intent intent = new Intent(MainActivity.this,ResultSearchActivity.class);
-                            intent.putExtra("jsonArray", jsonArray[0].toString());
-                            intent.putExtra("main",true);
-                            startActivity(intent);
-                        }else{
-                            Toast.makeText(MainActivity.this,array[22],Toast.LENGTH_SHORT).show();
-                        }
-                    }catch (Exception e){}
-                }
-        });
-
-
-    }
 
     public void getData(){
         ProgressDialog dialog = new ProgressDialog(MainActivity.this);

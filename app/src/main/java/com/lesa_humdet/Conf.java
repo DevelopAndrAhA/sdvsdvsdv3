@@ -3,7 +3,7 @@ package com.lesa_humdet;
 public class Conf {
     private String shared_pref_name = "settings_gz";
     //private String domen = "http://lesa01.mircloud.host/api/";
-    private String domen = "http://node138887-lesa04.mircloud.host/api/";
+    private String domen = "http://node142496-env-8413235.mircloud.host/api/";
 //<!--android:networkSecurityConfig="@xml/network_security_config"-->
 
     private final String LANG = "lang";

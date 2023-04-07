@@ -32,6 +32,7 @@ import android.media.ImageReader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -59,7 +60,9 @@ import android.graphics.Paint.Style;
 import android.graphics.Color;
 import android.graphics.RectF;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
@@ -77,11 +80,9 @@ import com.lesa_humdet.tflite.TFLiteObjectDetectionAPIModel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -89,22 +90,32 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
+import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LifecycleRegistry;
 
 
-public class MyService extends Service {
+public class MyService extends  Service implements LifecycleOwner {
     SharedPreferences mSettings;
     SharedPreferences.Editor editor;
 
     ConstraintLayout layout = null;
     WindowManager windowManager = null;
     AutoFitTextureView texture;
-    //String TAG = "MyService";
+    String TAG = "MyService";
     private final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private Size imageDimension;
     protected CaptureRequest.Builder captureRequestBuilder;
@@ -113,7 +124,12 @@ public class MyService extends Service {
     protected CameraCaptureSession cameraCaptureSessions;
     private ImageReader imageReader;
 
+    private Handler handler;
     private Handler mBackgroundHandler;
+    private Handler backgroundHandler;
+
+    private HandlerThread handlerThread;
+    private HandlerThread backgroundThread;
 
 
     // Face detector
@@ -144,22 +160,18 @@ public class MyService extends Service {
     private Runnable imageConverter;
     private Runnable postInferenceCallback;
     private long timestamp = 0;
-    private Handler handler;
-    private HandlerThread handlerThread;
-    private boolean addPending = true;
-    private Bitmap cropCopyBitmap = null;
-    private long lastProcessingTimeMs;
     private boolean computingDetection = false;
 
 
-    private Handler backgroundHandler;
-    private HandlerThread backgroundThread;
     private String[] array;
     Conf conf = new Conf();
     double lat=0,lng=0;
     SaveNewFace saveNewFace = null;
-    public MyService() {
+    CameraManager manager=null;
+    CameraCharacteristics characteristics = null;
 
+
+    public MyService() {
 
     }
 
@@ -171,55 +183,30 @@ public class MyService extends Service {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         layout = (ConstraintLayout) inflater.inflate(R.layout.camera_view, null);
-        texture = (AutoFitTextureView) layout.findViewById(R.id.texture);
         trackingOverlay = (OverlayView) layout.findViewById(R.id.tracking_overlay);
+        texture = (AutoFitTextureView) layout.findViewById(R.id.texture);
+
         int lang = mSettings.getInt(conf.getLANG(), 2);
         if (lang == conf.getRU()) {
             array = getResources().getStringArray(R.array.app_lang_ru);
         } else if (lang == conf.getEN()) {
             array = getResources().getStringArray(R.array.app_lang_en);
-        }/* else if (lang == conf.getAR()) {
+        } else if (lang == conf.getAR()) {
             array = getResources().getStringArray(R.array.app_lang_ar);
-        }*/
+        }
         saveNewFace = new SaveNewFace(getApplicationContext());
-        texture.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-            @Override
-            public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, final int width, final int height) {
-                openCamera(cameraId);
-            }
 
-            @Override
-            public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
-
-            }
-
-            @Override
-            public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surfaceTexture) {
-                return false;
-            }
-
-            @Override
-            public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surfaceTexture) {
-
-            }
-
-        });
         layout.setOnTouchListener(new View.OnTouchListener() {
                                       float dX, dY;
 
                                       @Override
                                       public boolean onTouch(View view, MotionEvent motionEvent) {
-
                                           switch (motionEvent.getAction()) {
-
                                               case MotionEvent.ACTION_DOWN:
-
                                                   dX = view.getX() - motionEvent.getRawX();
                                                   dY = view.getY() - motionEvent.getRawY();
                                                   break;
-
                                               case MotionEvent.ACTION_MOVE:
-
                                                   view.animate()
                                                           .x(motionEvent.getRawX() + dX)
                                                           .y(motionEvent.getRawY() + dY)
@@ -238,7 +225,6 @@ public class MyService extends Service {
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                // Make the underlying application window visible through any transparent parts
                 PixelFormat.TRANSLUCENT);
         p.gravity = Gravity.TOP | Gravity.RIGHT;
         p.dimAmount = (float) 0.0;
@@ -260,14 +246,9 @@ public class MyService extends Service {
 
 
         FaceDetector detector = FaceDetection.getClient(options);
-
         faceDetector = detector;
-
-
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
@@ -280,15 +261,34 @@ public class MyService extends Service {
             }
             @Override
             public void onProviderDisabled(String provider) {
-                // TODO Auto-generated method stub
             }
             @Override
             public void onProviderEnabled(String provider) {
-                // TODO Auto-generated method stub
             }
             @Override
             public void onStatusChanged(String provider, int status,Bundle extras) {
-                // TODO Auto-generated method stub
+            }
+        });
+
+        texture.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, final int width, final int height) {
+                openCamera(cameraId);
+            }
+
+            @Override
+            public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
+
+            }
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surfaceTexture) {
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surfaceTexture) {
+
             }
         });
     }
@@ -297,21 +297,29 @@ public class MyService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
+        Log.e(TAG, "onBind");
         throw new UnsupportedOperationException("Not yet implemented");
     }
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        Log.e(TAG, "onTaskRemoved");
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        onTaskRemoved(intent);
-        return super.onStartCommand(intent, flags, startId);
+
+        if(cameraId==null){
+            layout.setVisibility(View.GONE);
+        }
+        return START_STICKY;
     }
 
     private void openCamera(String cameraId) {
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        //Log.e(TAG, "is camera open");
+        manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+            characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
@@ -320,16 +328,17 @@ public class MyService extends Service {
             }
             onPreviewSizeChosen(previewSize,90);
             manager.openCamera(cameraId, stateCallback, null);
+            initializeCamera();
         } catch (CameraAccessException e) {
-            e.printStackTrace();
+            layout.setVisibility(View.GONE);
+            Log.e(TAG, e.toString()+"openCamera [openCamera]");
         }
-        //Log.e(TAG, "openCamera X");
     }
-    private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
+
+
+    private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(CameraDevice camera) {
-            //This is called when the camera is open
-            //Log.e(TAG, "onOpened");
             cameraDevice = camera;
             createCameraPreview();
         }
@@ -337,6 +346,7 @@ public class MyService extends Service {
         @Override
         public void onDisconnected(CameraDevice camera) {
             cameraDevice.close();
+            cameraDevice = null;
         }
 
         @Override
@@ -344,10 +354,114 @@ public class MyService extends Service {
             try{
                 cameraDevice.close();
                 cameraDevice = null;
-            }catch (Exception e){}
+            }catch (Exception e){
+                Log.e(TAG, e.toString()+"[CameraDevice.StateCallback]");
+            }
+        }
+    };
+    ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(final ImageReader reader) {
+                    if (previewWidth == 0 || previewHeight == 0) {
+                        return;
+                    }
+                    if (rgbBytes == null) {
+                        rgbBytes = new int[previewWidth * previewHeight];
+                    }
+                    try {
+                        final Image image = reader.acquireLatestImage();
+                        if (image == null) {
+                            return;
+                        }
+                        final Image.Plane[] planes = image.getPlanes();
+                        fillBytes(planes, yuvBytes);
+                        yRowStride = planes[0].getRowStride();
+                        final int uvRowStride = planes[1].getRowStride();
+                        final int uvPixelStride = planes[1].getPixelStride();
+
+                        imageConverter =
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ImageUtils.convertYUV420ToARGB8888(
+                                                yuvBytes[0],
+                                                yuvBytes[1],
+                                                yuvBytes[2],
+                                                previewWidth,
+                                                previewHeight,
+                                                yRowStride,
+                                                uvRowStride,
+                                                uvPixelStride,
+                                                rgbBytes);
+                                    }
+                                };
+
+                        postInferenceCallback =
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        image.close();
+                                    }
+                                };
+
+                        onResume();
+                        processImage();
+                    } catch (final Exception e) {
+                        e.printStackTrace();
+                        return;
+                    }
+        }
+    };
+    final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+        @Override
+        public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+            super.onCaptureCompleted(session, request, result);
+            Toast.makeText(MyService.this, array[20], Toast.LENGTH_SHORT).show();
+            createCameraPreview();
         }
     };
 
+    private void save(byte[] bytes, File file) throws IOException {
+        if(bytes!=null){
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+                    bitmap = resizeImage(bitmap, 640, true);
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(90);
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
+                    Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, true);
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    rotatedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    byte[] cropByteArray = stream.toByteArray();
+                    OutputStream output = null;
+                    try {
+                        output = new FileOutputStream(file);
+                        output.write(cropByteArray);
+                    }catch (Exception e){}
+                    finally {
+                        if (output != null) {
+                            try {
+                                output.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    String path = compressImage(file.getAbsolutePath());
+                    File tmpFile  = new File(path);
+                    saveNewFace.setLargePohto(tmpFile);
+                    if(isOnline()){
+                        saveNewFace.execute();
+                    }else{
+                        Toast.makeText(getApplicationContext(),array[35],Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            t.start();
+        }
+    }
 
     protected void createCameraPreview() {
         try {
@@ -362,6 +476,8 @@ public class MyService extends Service {
             backgroundThread.start();
             backgroundHandler = new Handler(backgroundThread.getLooper());
             mBackgroundHandler = backgroundHandler;
+
+
             imageReader =
                     ImageReader.newInstance(
                             640, 480, ImageFormat.YUV_420_888, 2);
@@ -369,8 +485,6 @@ public class MyService extends Service {
 
 
             imageReader.setOnImageAvailableListener(readerListener, backgroundHandler);
-            //previewReader.setOnImageAvailableListener(readerListener, backgroundHandler);
-
             captureRequestBuilder.addTarget(imageReader.getSurface());
 
 
@@ -379,11 +493,9 @@ public class MyService extends Service {
                     Arrays.asList(surface, imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            //The camera is already closed
                             if (null == cameraDevice) {
                                 return;
                             }
-                            // When the session is ready, we start displaying the preview.
                             cameraCaptureSessions = cameraCaptureSession;
                             updatePreview();
                         }
@@ -394,369 +506,24 @@ public class MyService extends Service {
                         }
                     }, null);
         } catch (Exception e) {
-            e.printStackTrace();
-            String error  = e.toString();
-            System.out.println(error);
-            //Log.e(TAG,e.toString());
+            Log.e(TAG, e.toString()+"createCameraPreview");
         }
     }
     protected void updatePreview() {
         if (null == cameraDevice) {
-            //Log.e(TAG, "updatePreview error, return");
+            Log.e(TAG, "updatePreview error, return");
         }
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
         try {
             cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-    protected void takePicture(long currTimestamp) {
-        if (null == cameraDevice) {
-            //Log.e(TAG, "cameraDevice is null");
-            return;
-        }
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
-            Size[] jpegSizes = null;
-            if (characteristics != null) {
-                jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputSizes(ImageFormat.JPEG);
-            }
-            int width = 640;
-            int height = 480;
-            if (jpegSizes != null && jpegSizes.length > 0) {
-                width = jpegSizes[0].getWidth();
-                height = jpegSizes[0].getHeight();
-            }
-            ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
-            List<Surface> outputSurfaces = new ArrayList<>();
-            outputSurfaces.add(reader.getSurface());
-            outputSurfaces.add(new Surface(texture.getSurfaceTexture()));
-            final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            captureBuilder.addTarget(reader.getSurface());
-            captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-            int rotation = windowManager.getDefaultDisplay().getRotation();
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation)+90);
-            captureBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 100);
-            File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "HUMDET");
-            if(!dir.exists()){
-                dir.mkdir();
-            }
-            final File file = new File(dir, currTimestamp+".jpg");
-            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(ImageReader reader) {
-                    Image image = null;
-                    try {
-                        image = reader.acquireLatestImage();
-                        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                        byte[] bytes = new byte[buffer.capacity()];
-                        buffer.get(bytes);
-                        save(bytes, file);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        if (image != null) {
-                            image.close();
-                        }
-                    }
-                }
-
-                private void save(byte[] bytes, File file) throws IOException {
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
-                    bitmap = resizeImage(bitmap, 640, true);
-                    Matrix matrix = new Matrix();
-                    matrix.postRotate(90);
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
-                    Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, true);
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    rotatedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    byte[] cropByteArray = stream.toByteArray();
-                    OutputStream output = null;
-                    try {
-                        output = new FileOutputStream(file);
-                        output.write(cropByteArray);
-                    } finally {
-                        if (output != null) {
-                            output.close();
-                        }
-                    }
-                    String path = compressImage(file.getAbsolutePath());
-                    File tmpFile  = new File(path);
-                    saveNewFace.setLargePohto(tmpFile);
-                    if(isOnline()){
-                        saveNewFace.execute();
-                    }else{
-                        Toast.makeText(getApplicationContext(),array[35],Toast.LENGTH_LONG).show();
-                    }
-                }
-            };
-            reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
-
-            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                    super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MyService.this, array[20], Toast.LENGTH_SHORT).show();
-                    createCameraPreview();
-                }
-            };
-            cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(CameraCaptureSession session) {
-                    try {
-                        session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onConfigureFailed(CameraCaptureSession session) {
-                }
-            }, mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void onPreviewSizeChosen(final Size size, final int rotation) {
-        final float textSizePx =
-                TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
-        borderedText = new BorderedText(textSizePx);
-        borderedText.setTypeface(Typeface.MONOSPACE);
-
-        tracker = new MultiBoxTracker(this);
-
-
-        try {
-            detector =
-                    TFLiteObjectDetectionAPIModel.create(
-                            getAssets(),
-                            TF_OD_API_MODEL_FILE,
-                            TF_OD_API_LABELS_FILE,
-                            TF_OD_API_INPUT_SIZE,
-                            TF_OD_API_IS_QUANTIZED);
-            //cropSize = TF_OD_API_INPUT_SIZE;
-        } catch (final Exception e) {
-            e.printStackTrace();
-            //Log.e(TAG, e.toString());
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            previewWidth = size.getWidth();
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            previewHeight = size.getHeight();
-        }
-
-        sensorOrientation = rotation - getScreenOrientation();
-        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.RGB_565);//RGB_565 ARGB_8888
-
-
-        int targetW, targetH;
-        if (sensorOrientation == 90 || sensorOrientation == 270) {
-            targetH = previewWidth;
-            targetW = previewHeight;
-        }
-        else {
-            targetW = previewWidth;
-            targetH = previewHeight;
-        }
-        int cropW = (int) (targetW / 2.0);
-        int cropH = (int) (targetH / 2.0);
-
-        croppedBitmap = Bitmap.createBitmap(cropW, cropH, Bitmap.Config.RGB_565);
-
-        portraitBmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.RGB_565);
-        faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.RGB_565);
-
-        frameToCropTransform =
-                ImageUtils.getTransformationMatrix(
-                        previewWidth, previewHeight,
-                        cropW, cropH,
-                        sensorOrientation, MAINTAIN_ASPECT);
-
-//    frameToCropTransform =
-//            ImageUtils.getTransformationMatrix(
-//                    previewWidth, previewHeight,
-//                    previewWidth, previewHeight,
-//                    sensorOrientation, MAINTAIN_ASPECT);
-
-        cropToFrameTransform = new Matrix();
-        frameToCropTransform.invert(cropToFrameTransform);
-
-
-        Matrix frameToPortraitTransform =
-                ImageUtils.getTransformationMatrix(
-                        previewWidth, previewHeight,
-                        targetW, targetH,
-                        sensorOrientation, MAINTAIN_ASPECT);
-
-
-
-        trackingOverlay.addCallback(
-                new OverlayView.DrawCallback() {
-                    @Override
-                    public void drawCallback(final Canvas canvas) {
-                        String str = tracker.draw(canvas);
-                        if(str!=null){
-                            //То снимок и шлем на сервак
-                        }
-                    }
-                });
-
-        tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
-    }
-
-    protected int getScreenOrientation() {
-        switch (windowManager.getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_270:
-                return 270;
-            case Surface.ROTATION_180:
-                return 180;
-            case Surface.ROTATION_90:
-                return 90;
-            default:
-                return 0;
+            Log.e(TAG, e.toString()+"updatePreview");
         }
     }
 
 
 
-    protected void fillBytes(final Image.Plane[] planes, final byte[][] yuvBytes) {
-        // Because of the variable row stride it's not possible to know in
-        // advance the actual necessary dimensions of the yuv planes.
-        for (int i = 0; i < planes.length; ++i) {
-            final ByteBuffer buffer = planes[i].getBuffer();
-            if (yuvBytes[i] == null) {
-                Log.d("Buffer at size", i+ buffer.capacity()+"");
-                yuvBytes[i] = new byte[buffer.capacity()];
-            }
-            buffer.get(yuvBytes[i]);
-        }
-    }
 
-    protected void processImage() {
-        ++timestamp;
-        final long currTimestamp = timestamp;
-        trackingOverlay.postInvalidate();
-
-        // No mutex needed as this method is not reentrant.
-        if (computingDetection) {
-            readyForNextImage();
-            return;
-        }
-        computingDetection = true;
-
-
-        rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
-
-        readyForNextImage();
-
-        final Canvas canvas = new Canvas(croppedBitmap);
-        canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
-
-        InputImage image = InputImage.fromBitmap(croppedBitmap, 0);
-
-        try{
-            faceDetector
-                    .process(image)
-                    .addOnSuccessListener(new OnSuccessListener<List<Face>>() {
-                        @Override
-                        public void onSuccess(List<Face> faces) {
-                            if (faces.size() == 0) {
-                                updateResults(currTimestamp, new LinkedList<>(),null);
-                                return;
-                            }
-                            runInBackground(
-                                    new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            onFacesDetected(currTimestamp, faces/*, addPending*/);
-                                            addPending = false;
-                                        }
-                                    });
-                        }
-
-                    }).getResult();
-        }catch (Exception e){}
-
-
-    }
-    protected int[] getRgbBytes() {
-        imageConverter.run();
-        return rgbBytes;
-    }
-
-
-    protected void readyForNextImage() {
-        if (postInferenceCallback != null) {
-            postInferenceCallback.run();
-        }
-    }
-
-    public synchronized void onResume() {
-        handlerThread = new HandlerThread("inference");
-        handlerThread.start();
-        handler = new Handler(handlerThread.getLooper());
-    }
-    protected synchronized void runInBackground(final Runnable r) {
-        if (handler != null) {
-            handler.post(r);
-        }
-    }
-    private void updateResults(long currTimestamp, final List<SimilarityClassifier.Recognition> mappedRecognitions, Bitmap crop) {
-        tracker.trackResults(mappedRecognitions, currTimestamp);
-        trackingOverlay.postInvalidate();
-        computingDetection = false;
-        if (!mappedRecognitions.isEmpty()) {
-            SimilarityClassifier.Recognition rec = mappedRecognitions.get(0);
-            if (rec.getExtra() != null && (rec.getTitle() == null || rec.getTitle().isEmpty())) {
-                detector.register(currTimestamp + "", rec);
-                String dateStr = new Date().toLocaleString().split(" ")[0];
-                if (!rec.getDate().equals(dateStr) && rec.getDate().isEmpty()) {
-                    if (crop != null) {
-                        ExecutorService executor = Executors.newFixedThreadPool(2);
-                        executor.submit(() -> {
-                            try {
-                                saveNewFace.setLat(lat);
-                                saveNewFace.setLng(lng);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            saveNewFace.setUsername(currTimestamp + "");
-                            saveNewFace.setTitle(currTimestamp + "");
-                            float mas[][] = (float[][]) rec.getExtra();
-                            StringBuilder masToSend = new StringBuilder();
-                            for (int i = 0; i < mas[0].length; i++) {
-                                masToSend.append(mas[0][i]);
-                                if (i != mas[0].length - 1) {
-                                    masToSend.append(",");
-                                }
-                            }
-                            saveNewFace.setCrop(masToSend.toString());
-                        });
-                        executor.submit(() -> takePicture(currTimestamp));
-                        executor.shutdown();
-                    }
-                } else if (rec.getDate().isEmpty()) {
-                    if (crop != null) {
-                        ExecutorService executor = Executors.newSingleThreadExecutor();
-                        executor.submit(() -> takePicture(currTimestamp));
-                        executor.shutdown();
-                    }
-                }
-            } else if (rec.getExtra() != null) {
-                detector.register(currTimestamp + "", rec);
-            }
-        }
-
-    }
     private boolean onFacesDetected(long currTimestamp, List<Face> faces) {
         Bitmap cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
         final Canvas canvas = new Canvas(cropCopyBitmap);
@@ -796,7 +563,6 @@ public class MyService extends Service {
                 canvas.drawRect(faceBB, paint);
                 String label = "";
                 float confidence = -1f;
-                Integer color = Color.BLUE;
                 Object extra = null;
                 Bitmap crop = null;
                 try{
@@ -816,15 +582,10 @@ public class MyService extends Service {
                         if (conf < 1.0f) {
                             confidence = conf;
                             label = result.getTitle();
-                            if (result.getId().equals("0")) {
-                                color = Color.TRANSPARENT;
-                            }else {
-                                color = Color.TRANSPARENT;
-                            }
                         }
                     }
-                    final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition("0", label, confidence, boundingBox,"");
-                    result.setColor(color);
+                    final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition(startTime+"", label, confidence, boundingBox,"");
+                    //result.setColor(color);
                     result.setExtra(extra);
                     result.setCrop(crop);
                     result.setLocation(boundingBox);
@@ -835,13 +596,128 @@ public class MyService extends Service {
         updateResults(currTimestamp, mappedRecognitions, Bitmap.createBitmap(cropCopyBitmap));
         return true;
     }
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        /*Intent restartServiceIntent = new Intent(getApplicationContext(),this.getClass());
-        restartServiceIntent.setPackage(getPackageName());
-        startService(restartServiceIntent);*/
-        super.onTaskRemoved(rootIntent);
+
+    ProcessCameraProvider cameraProvider;
+    CameraSelector cameraSelector;
+    private void initializeCamera() {
+        // Получение экземпляра CameraProvider
+        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+
+        // Обработка выполнения задачи получения экземпляра CameraProvider
+        cameraProviderFuture.addListener(() -> {
+            try {
+                // Получение экземпляра CameraProvider
+                cameraProvider = cameraProviderFuture.get();
+
+                // Создание CameraSelector с задней камерой
+                cameraSelector = new CameraSelector.Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                        .build();
+
+            } catch (ExecutionException | InterruptedException e) {
+                // Обработка ошибки
+            }
+        }, ContextCompat.getMainExecutor(this));
     }
+
+
+
+
+
+
+    protected void processImage() {
+        ++timestamp;
+        final long currTimestamp = timestamp;
+        trackingOverlay.postInvalidate();
+
+        if (computingDetection) {
+            readyForNextImage();
+            return;
+        }
+        computingDetection = true;
+
+
+        rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
+
+        readyForNextImage();
+
+        final Canvas canvas = new Canvas(croppedBitmap);
+        canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
+
+        InputImage image = InputImage.fromBitmap(croppedBitmap, 0);
+
+        try{
+            faceDetector
+                    .process(image)
+                    .addOnSuccessListener(new OnSuccessListener<List<Face>>() {
+                        @Override
+                        public void onSuccess(List<Face> faces) {
+                            if (faces.size() == 0) {
+                                updateResults(currTimestamp, new LinkedList<>(), croppedBitmap);
+                                return;
+                            }
+
+                            runInBackground(new Runnable() {
+                                @Override
+                                public void run() {
+                                    onFacesDetected(currTimestamp, faces);
+                                }
+                            });
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void updateResults(long currTimestamp, final List<SimilarityClassifier.Recognition> mappedRecognitions, Bitmap crop) {
+        tracker.trackResults(mappedRecognitions, currTimestamp);
+        trackingOverlay.postInvalidate();
+        computingDetection = false;
+        if (!mappedRecognitions.isEmpty()) {
+            SimilarityClassifier.Recognition rec = mappedRecognitions.get(0);
+            if (rec.getExtra() != null && (rec.getTitle() == null || rec.getTitle().isEmpty())) {
+                detector.register(currTimestamp + "", rec);
+                String dateStr = new Date().toLocaleString().split(" ")[0];
+                if (!rec.getDate().equals(dateStr) && rec.getDate().isEmpty()) {
+                    if (crop != null) {
+                        ExecutorService executor = Executors.newFixedThreadPool(2);
+                        executor.submit(() -> {
+                            try {
+                                saveNewFace.setLat(lat);
+                                saveNewFace.setLng(lng);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            saveNewFace.setUsername(currTimestamp + "");
+                            saveNewFace.setTitle(currTimestamp + "");
+                            float mas[][] = (float[][]) rec.getExtra();
+                            StringBuilder masToSend = new StringBuilder();
+                            for (int i = 0; i < mas[0].length; i++) {
+                                masToSend.append(mas[0][i]);
+                                if (i != mas[0].length - 1) {
+                                    masToSend.append(",");
+                                }
+                            }
+                            saveNewFace.setCrop(masToSend.toString());
+                            new TakePictureTask().execute();
+                        });
+                        executor.shutdown();
+                    }
+                }
+            } else if (rec.getExtra() != null) {
+                detector.register(currTimestamp + "", rec);
+            }
+        }
+    }
+
+
 
     private Matrix createTransform(
             final int srcWidth,
@@ -852,94 +728,24 @@ public class MyService extends Service {
 
         Matrix matrix = new Matrix();
         if (applyRotation != 0) {
-
-            // Translate so center of image is at origin.
             matrix.postTranslate(-srcWidth / 2.0f, -srcHeight / 2.0f);
-
-            // Rotate around origin.
             matrix.postRotate(applyRotation);
         }
-
-//        // Account for the already applied rotation, if any, and then determine how
-//        // much scaling is needed for each axis.
-//        final boolean transpose = (Math.abs(applyRotation) + 90) % 180 == 0;
-//        final int inWidth = transpose ? srcHeight : srcWidth;
-//        final int inHeight = transpose ? srcWidth : srcHeight;
-
         if (applyRotation != 0) {
-
-            // Translate back from origin centered reference to destination frame.
             matrix.postTranslate(dstWidth / 2.0f, dstHeight / 2.0f);
         }
-
         return matrix;
-
     }
 
-    ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(final ImageReader reader) {
-            if (previewWidth == 0 || previewHeight == 0) {
-                return;
-            }
-            if (rgbBytes == null) {
-                rgbBytes = new int[previewWidth * previewHeight];
-            }
-            try {
-                final Image image = reader.acquireLatestImage();
-                if (image == null) {
-                    return;
-                }
-                final Image.Plane[] planes = image.getPlanes();
-                fillBytes(planes, yuvBytes);
-                yRowStride = planes[0].getRowStride();
-                final int uvRowStride = planes[1].getRowStride();
-                final int uvPixelStride = planes[1].getPixelStride();
 
-                imageConverter =
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                ImageUtils.convertYUV420ToARGB8888(
-                                        yuvBytes[0],
-                                        yuvBytes[1],
-                                        yuvBytes[2],
-                                        previewWidth,
-                                        previewHeight,
-                                        yRowStride,
-                                        uvRowStride,
-                                        uvPixelStride,
-                                        rgbBytes);
-                            }
-                        };
 
-                postInferenceCallback =
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                image.close();
-                            }
-                        };
 
-                onResume();
-                processImage();
-            } catch (final Exception e) {
-                //Log.e(TAG,e.toString());
-                e.printStackTrace();
-                return;
-            }
-        }
-    };
 
     public Bitmap resizeImage(Bitmap realImage, float maxImageSize,boolean filter) {
         float ratio = Math.min((float) maxImageSize / realImage.getWidth(),(float) maxImageSize / realImage.getHeight());
         int width = Math.round((float) ratio * realImage.getWidth());
         int height = Math.round((float) ratio * realImage.getHeight());
-
         Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width,height, filter);
-
-
-
         return newBitmap;
     }
     public boolean isOnline() {
@@ -958,9 +764,6 @@ public class MyService extends Service {
         Bitmap scaledBitmap = null;
 
         BitmapFactory.Options options = new BitmapFactory.Options();
-
-//      by setting this field as true, the actual bitmap pixels are not loaded in the memory. Just the bounds are loaded. If
-//      you try the use the bitmap here, you will get null.
         options.inJustDecodeBounds = true;
         Bitmap bmp = BitmapFactory.decodeFile(filePath, options);
 
@@ -973,8 +776,6 @@ public class MyService extends Service {
         float maxWidth = 612.0f;
         float imgRatio = actualWidth / actualHeight;
         float maxRatio = maxWidth / maxHeight;
-
-//      width and height values are set maintaining the aspect ratio of the image
 
         if (actualHeight > maxHeight || actualWidth > maxWidth) {
             if (imgRatio < maxRatio) {
@@ -992,20 +793,15 @@ public class MyService extends Service {
             }
         }
 
-//      setting inSampleSize value allows to load a scaled down version of the original image
-
         options.inSampleSize = calculateInSampleSize(options, actualWidth, actualHeight);
 
-//      inJustDecodeBounds set to false to load the actual bitmap
         options.inJustDecodeBounds = false;
 
-//      this options allow android to claim the bitmap memory if it runs low on memory
         options.inPurgeable = true;
         options.inInputShareable = true;
         options.inTempStorage = new byte[16 * 1024];
 
         try {
-//          load the bitmap from its path
             bmp = BitmapFactory.decodeFile(filePath, options);
         } catch (OutOfMemoryError exception) {
             exception.printStackTrace();
@@ -1028,8 +824,6 @@ public class MyService extends Service {
         Canvas canvas = new Canvas(scaledBitmap);
         canvas.setMatrix(scaleMatrix);
         canvas.drawBitmap(bmp, middleX - bmp.getWidth() / 2, middleY - bmp.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
-
-//      check the rotation of the image and display it properly
         ExifInterface exif;
         try {
             exif = new ExifInterface(filePath);
@@ -1052,19 +846,17 @@ public class MyService extends Service {
                     scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix,
                     true);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.toString()+"[compressImage]");
         }
 
         FileOutputStream out = null;
         String filename = getFilename();
         try {
             out = new FileOutputStream(filename);
-
-//          write the compressed bitmap at the destination specified by filename.
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.toString()+"[compressImage]");
         }
         File delFile = new File(filePath);
         delFile.delete();
@@ -1112,5 +904,217 @@ public class MyService extends Service {
 
         return inSampleSize;
     }
+
+    protected int[] getRgbBytes() {
+        imageConverter.run();
+        return rgbBytes;
+    }
+
+    protected void readyForNextImage() {
+        if (postInferenceCallback != null) {
+            postInferenceCallback.run();
+        }
+    }
+
+    public synchronized void onResume() {
+        handlerThread = new HandlerThread("inference");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+    }
+
+    protected void fillBytes(final Image.Plane[] planes, final byte[][] yuvBytes) {
+        for (int i = 0; i < planes.length; ++i) {
+            final ByteBuffer buffer = planes[i].getBuffer();
+            if (yuvBytes[i] == null) {
+                Log.d("Buffer at size", i+ buffer.capacity()+"");
+                yuvBytes[i] = new byte[buffer.capacity()];
+            }
+            buffer.get(yuvBytes[i]);
+        }
+    }
+
+    protected synchronized void runInBackground(final Runnable r) {
+        if (handler != null) {
+            handler.post(r);
+        }
+    }
+
+    public void onPreviewSizeChosen(final Size size, final int rotation) {
+        final float textSizePx =
+                TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
+        borderedText = new BorderedText(textSizePx);
+        borderedText.setTypeface(Typeface.MONOSPACE);
+
+        tracker = new MultiBoxTracker(this);
+
+
+        try {
+            detector =
+                    TFLiteObjectDetectionAPIModel.create(
+                            getAssets(),
+                            TF_OD_API_MODEL_FILE,
+                            TF_OD_API_LABELS_FILE,
+                            TF_OD_API_INPUT_SIZE,
+                            TF_OD_API_IS_QUANTIZED);
+        } catch (final Exception e) {
+            Log.e(TAG, e.toString()+"[onPreviewSizeChosen]");
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            previewWidth = size.getWidth();
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            previewHeight = size.getHeight();
+        }
+
+        sensorOrientation = rotation - getScreenOrientation();
+        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.RGB_565);//RGB_565 ARGB_8888
+
+
+        int targetW, targetH;
+        if (sensorOrientation == 90 || sensorOrientation == 270) {
+            targetH = previewWidth;
+            targetW = previewHeight;
+        }
+        else {
+            targetW = previewWidth;
+            targetH = previewHeight;
+        }
+        int cropW = (int) (targetW / 2.0);
+        int cropH = (int) (targetH / 2.0);
+
+        croppedBitmap = Bitmap.createBitmap(cropW, cropH, Bitmap.Config.RGB_565);
+
+        portraitBmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.RGB_565);
+        faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.RGB_565);
+
+        frameToCropTransform =
+                ImageUtils.getTransformationMatrix(
+                        previewWidth, previewHeight,
+                        cropW, cropH,
+                        sensorOrientation, MAINTAIN_ASPECT);
+
+        cropToFrameTransform = new Matrix();
+        frameToCropTransform.invert(cropToFrameTransform);
+
+
+        Matrix frameToPortraitTransform =
+                ImageUtils.getTransformationMatrix(
+                        previewWidth, previewHeight,
+                        targetW, targetH,
+                        sensorOrientation, MAINTAIN_ASPECT);
+
+
+
+        trackingOverlay.addCallback(
+                new OverlayView.DrawCallback() {
+                    @Override
+                    public void drawCallback(final Canvas canvas) {
+                        String str = tracker.draw(canvas);
+                        if(str!=null){
+                            //То снимок и шлем на сервак
+                        }
+                    }
+                });
+
+        tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
+    }
+
+    protected int getScreenOrientation() {
+        switch (windowManager.getDefaultDisplay().getRotation()) {
+            case Surface.ROTATION_270:
+                return 270;
+            case Surface.ROTATION_180:
+                return 180;
+            case Surface.ROTATION_90:
+                return 90;
+            default:
+                return 0;
+        }
+    }
+
+    @NonNull
+    @Override
+    public Lifecycle getLifecycle() {
+         LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
+        return lifecycleRegistry;
+    }
+
+
+    private class TakePictureTask extends AsyncTask<Void, Void, File> {
+        @Override
+        protected File doInBackground(Void... voids) {
+            long currTimestamp = System.currentTimeMillis();
+            try {
+                Size[] jpegSizes = null;
+                if (characteristics != null) {
+                    jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputSizes(ImageFormat.JPEG);
+                }
+                int width = 640;
+                int height = 480;
+                if (jpegSizes != null && jpegSizes.length > 0) {
+                    width = jpegSizes[0].getWidth();
+                    height = jpegSizes[0].getHeight();
+                }
+                ImageReader tmpReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+                List<Surface> outputSurfaces = new ArrayList<>();
+                outputSurfaces.add(tmpReader.getSurface());
+                outputSurfaces.add(new Surface(texture.getSurfaceTexture()));
+                final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+                captureBuilder.addTarget(tmpReader.getSurface());
+                captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+                int rotation = windowManager.getDefaultDisplay().getRotation();
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation)+90);
+                captureBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 100);
+                File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "HUMDET");
+                if(!dir.exists()){
+                    dir.mkdir();
+                }
+                File file = new File(dir, currTimestamp+".jpg");
+                ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+                    @Override
+                    public void onImageAvailable(ImageReader reader) {
+                        Image image = null;
+                        try {
+                            image = reader.acquireLatestImage();
+                            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                            byte[] bytes = new byte[buffer.capacity()];
+                            buffer.get(bytes);
+                            save(bytes, file);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (image != null) {
+                                image.close();
+                            }
+                        }
+                    }
+                };
+                tmpReader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
+                cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
+                    @Override
+                    public void onConfigured(CameraCaptureSession session) {
+                        try {
+                            session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
+                        } catch (CameraAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    @Override
+                    public void onConfigureFailed(CameraCaptureSession session) {
+                    }
+                }, mBackgroundHandler);
+                return file;
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+    }
+
+
+
 
 }
