@@ -52,6 +52,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ResultSearchActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
@@ -76,6 +78,7 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
 
     Button searchBtn = null;
     Button trainBtn = null;
+    int city_id = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,9 +176,6 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
                     jsonObject[2] = jsonArray.getJSONObject(i+1);
                     i = i+1;
                 }catch (Exception e){}
-                list.add(urlMas3);
-                jsonObjects.add(jsonObject);
-
                 if(list==null || list.size()==0) textView.setVisibility(View.VISIBLE);
                 CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects,jsonArray.toString());
                 runOnUiThread(new Runnable() {
@@ -220,6 +220,11 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
             new StatusOfBanner().execute();
         }else if(!isOnline()){
             Toast.makeText(ResultSearchActivity.this,array[35],Toast.LENGTH_LONG).show();
+        }
+
+        String city = mSettings.getString("city","");
+        if(city.isEmpty()){
+            showCountryAlert();
         }
     }
     @Override
@@ -459,6 +464,62 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
             }
 
         }
+    }
+
+    public void showCountryAlert(){
+        AlohaDb alohaDb = new AlohaDb(ResultSearchActivity.this);
+        SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
+        alohaDb.iniDb(sqLiteDatabase);
+        List<Country> list = alohaDb.getAllCountry();
+
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(ResultSearchActivity.this);
+        builderSingle.setIcon(R.drawable.location_icon);
+        builderSingle.setTitle(array[27]);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(ResultSearchActivity.this, android.R.layout.select_dialog_singlechoice);
+        for(int i=0;i<list.size();i++){
+            arrayAdapter.add(list.get(i).getName());
+        }
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Region> regions = alohaDb.getRegions(which);
+                final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(ResultSearchActivity.this, android.R.layout.select_dialog_singlechoice);
+                for(int i=0;i<regions.size();i++){
+                    arrayAdapterReg.add(regions.get(i).getName());
+                }
+
+
+                AlertDialog.Builder builderInnerRegion = new AlertDialog.Builder(ResultSearchActivity.this);
+                builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        List<City> cities = alohaDb.getCities(regions.get(i).getId());
+                        final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(ResultSearchActivity.this, android.R.layout.select_dialog_singlechoice);
+                        for(int k=0;k<cities.size();k++){
+                            arrayCity.add(cities.get(k).getName());
+                        }
+
+                        AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(ResultSearchActivity.this);
+                        builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int c) {
+                                editor.putString("city",arrayCity.getItem(c));
+                                editor.putInt("city_id",cities.get(c).getId());
+                                editor.apply();
+                                city_id = cities.get(c).getId();
+                                dialog.dismiss();
+                                Toast.makeText(ResultSearchActivity.this,array[19],Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        builderInnerCity.show();
+                    }
+                });
+                builderInnerRegion.show();
+            }
+        });
+        builderSingle.show();
     }
 
 }

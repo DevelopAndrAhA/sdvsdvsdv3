@@ -99,7 +99,7 @@ public class SettingsActivity extends AppCompatActivity {
                     Intent intentService = new Intent(SettingsActivity.this,MyService.class);
                     stopService(intentService);
 
-                    Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                    Intent intent = new Intent(SettingsActivity.this, ResultSearchActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     finish();
                 }

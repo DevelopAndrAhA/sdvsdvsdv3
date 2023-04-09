@@ -3,6 +3,7 @@ package com.lesa_humdet;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import okhttp3.Call;
 
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,9 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -37,8 +41,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+
 public class DetailActivity extends AppCompatActivity {
 
+    OkHttpClient client = new OkHttpClient();
     private MyPermissions per = new MyPermissions(DetailActivity.this,DetailActivity.this);
     SharedPreferences.Editor editor;
     private SharedPreferences mSettings;
@@ -46,32 +53,39 @@ public class DetailActivity extends AppCompatActivity {
     private String [] array;
     private Conf conf = new Conf();
 
-    private String jsonObjectsStr;
     private JSONObject jsonObject = null;
     private ImageView personImg;
-    //private TextView percent;
     private TextView photoDate2;
     private int position;
-    private JSONArray jsonArray;
+    //private JSONArray jsonArray;
+    //private String jsonObjectsStr;
+    //private TextView percent;
+    long fullFaceFeatures_id = 0;
+    long faceFeaturesId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try{
+            jsonObject = new JSONObject(getIntent().getStringExtra("jsonObject"));
+            position = getIntent().getIntExtra("position",0);
+            fullFaceFeatures_id = jsonObject.getLong("fullFaceFeatures_id");
+            faceFeaturesId = jsonObject.getLong("facefeatures_id");
+            //jsonObjectsStr = getIntent().getStringExtra("allJsonObject");
+            //Log.e("jsonObjectsStr",jsonObjectsStr);
+            //jsonArray = new JSONArray(jsonObjectsStr);
+        }catch (Exception e){e.printStackTrace();}
         Mapbox.getInstance(this, "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
+        deviceId = mSettings.getString("deviceId","*");
         setContentView(R.layout.activity_detail);
         personImg = findViewById(R.id.personImg);
         //percent = findViewById(R.id.percent);
         photoDate2 = findViewById(R.id.photoDate2);
         m_mapView = (MapView) findViewById(R.id.mapView);
         ProgressBar progressBar = findViewById(R.id.progressBar);
-        try{
-            jsonObject = new JSONObject(getIntent().getStringExtra("jsonObject"));
-            position = getIntent().getIntExtra("position",0);
-            jsonObjectsStr = getIntent().getStringExtra("allJsonObject");
-            jsonArray = new JSONArray(jsonObjectsStr);
-        }catch (Exception e){}
+
         personImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -165,15 +179,16 @@ public class DetailActivity extends AppCompatActivity {
 
     }
     JSONArray bookmarks = null;
+    String deviceId = "";
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_details, menu);
-
         MenuItem item = menu.findItem(R.id.action_bookmarks);
+        MenuItem action_delete = menu.findItem(R.id.action_delete);
+        action_delete.setVisible(false);
         item.setTitle(array[40]);
         try {
             bookmarks = new JSONArray(mSettings.getString("bookmarks","[]"));
-            Log.e("TAG", bookmarks.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -182,11 +197,43 @@ public class DetailActivity extends AppCompatActivity {
                 JSONObject tmpJsonObj = bookmarks.getJSONObject(i);
                 if (tmpJsonObj.getString("photoName").equals(jsonObject.getString("photoName"))) {
                     item.setIcon(R.drawable.ic_baseline_bookmark_added_24);
-                    Log.e("TAG", "detected");
                     break;
                 }
             }
         }catch (Exception e){e.printStackTrace();}
+
+        // Формируем URL для запроса
+        String url = conf.getDomen()+"getFullFaceFeatures?fullFaceFeatures_id=" + fullFaceFeatures_id;
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        // Отправляем запрос асинхронно
+        client.newCall(request).enqueue(new  com.squareup.okhttp.Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                try {
+                    String str = response.body().string();
+                    JSONObject jsonObject = new JSONObject(str);
+                    if(deviceId.equals(jsonObject.get("deviceId"))){
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                action_delete.setVisible(true);
+                            }
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         return true;
     }
@@ -212,6 +259,9 @@ public class DetailActivity extends AppCompatActivity {
                 editor.apply();
             }
 
+            return true;
+        }else if (item.getItemId() == R.id.action_delete) {
+            deleteFace(deviceId);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -278,5 +328,43 @@ public class DetailActivity extends AppCompatActivity {
             m_mapView.onDestroy();
         }
         finish();
+    }
+
+    public void deleteFace(String deviceId) {
+        String url = conf.getDomen()+"delete?deviceId=" + deviceId + "&faceFeatures_id=" + faceFeaturesId+"&fullFaceFeatures_id="+fullFaceFeatures_id;
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+        client.newCall(request).enqueue(new com.squareup.okhttp.Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    try{
+                        JSONObject status = new JSONObject(responseBody);
+                        if(status.getInt("status") == 200){
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(DetailActivity.this,array[44],Toast.LENGTH_SHORT).show();
+
+                                    Intent intent = new Intent(DetailActivity.this, ResultSearchActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    finish();
+                                }
+                            });
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 }

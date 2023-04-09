@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -77,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     int REQUEST_OVERLAY_PERMISSION=1000;
     MyPermissions per = new MyPermissions(MainActivity.this,MainActivity.this);
     private MapView m_mapView;
-    MapboxMap m_map;
     SharedPreferences mSettings;
     SharedPreferences.Editor editor;
     private String [] array;
@@ -85,17 +85,26 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     JSONArray humPhotos;
     Button searchBtn = null;
     Button trainBtn = null;
-
+    MapboxMap m_map = null;
     OkHttpClient client = new OkHttpClient();
-    int city_id;
+    int city_id = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Mapbox.getInstance(this, "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
-
+        Mapbox.getInstance(getApplicationContext(), "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
-        int langTmp = mSettings.getInt(conf.getLANG(),0);
+        int lang = mSettings.getInt(conf.getLANG(),1);
+        city_id = mSettings.getInt("city_id",0);
+        if(lang==conf.getRU()){
+            array = getResources().getStringArray(R.array.app_lang_ru);
+        }else if(lang==conf.getEN()){
+            array = getResources().getStringArray(R.array.app_lang_en);
+        }else if(lang==conf.getAR()){
+            array = getResources().getStringArray(R.array.app_lang_ar);
+        }else{
+            array = getResources().getStringArray(R.array.app_lang_ru);
+        }
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         setContentView(R.layout.activity_main);
@@ -113,7 +122,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         }
 
 
-
         per.getMyApplicationPermissions();
         getDeviceId(editor,getApplicationContext());
         m_mapView.onCreate(savedInstanceState);
@@ -124,11 +132,20 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull Style style) {
+                        cityChanged(mapboxMap);
+                        if(isOnline()){
+                            getData(mapboxMap);
+                        }else{
+                            Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
+                        }
+
                     }
                 });
-
                 Icon paellaIcon = IconFactory.getInstance(MainActivity.this).defaultMarker();
+
                 mapboxMap.addMarker(new MarkerOptions().setPosition(new LatLng(lat, lng)).setTitle("").setIcon(paellaIcon));
+
+
                 mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(@NonNull Marker marker) {
@@ -141,12 +158,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                         return false;
                     }
                 });
-                if(langTmp==0){
-                    showAlertDialog(mapboxMap);
-                }else{
-                    cityChanged(mapboxMap);
-                }
-
+                getData(m_map);
             }
         });
 
@@ -155,17 +167,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
         getSupportActionBar().hide();
 
-        int lang = mSettings.getInt(conf.getLANG(),1);
-        city_id = mSettings.getInt("city_id",0);
-        if(lang==conf.getRU()){
-            array = getResources().getStringArray(R.array.app_lang_ru);
-        }else if(lang==conf.getEN()){
-            array = getResources().getStringArray(R.array.app_lang_en);
-        }else if(lang==conf.getAR()){
-            array = getResources().getStringArray(R.array.app_lang_ar);
-        }else{
-            array = getResources().getStringArray(R.array.app_lang_ru);
-        }
 
         searchBtn = findViewById(R.id.button3);
         trainBtn = findViewById(R.id.button4);
@@ -214,8 +215,14 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             public void onInitializationComplete(InitializationStatus initializationStatus) {
             }
         });
+
+
+        String city = mSettings.getString("city","");
+        if(city.isEmpty()){
+            showCountryAlert();
+        }
+
         if(isOnline()){
-            getData();
             new StatusOfBanner().execute();
         }else{
             Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
@@ -259,69 +266,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
         } catch (Exception e) { }
     }
 
-
-
-    AlertDialog alert = null;
-    private void showAlertDialog(MapboxMap mapboxMap) {
-        final int[] lang = {0};
-        final int[] arr_lang_index = {0};
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
-
-        alertDialog.setTitle("Language");
-        String[] items = getResources().getStringArray(R.array.languages);
-        int checkedItem = 0;
-        alertDialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        lang[0] =  1;
-                        editor.putInt(conf.getLANG(),1);
-                        editor.apply();
-                        arr_lang_index[0] = R.array.app_lang_ru;
-                        array = getResources().getStringArray(R.array.app_lang_ru);
-                        break;
-                    case 1:
-                        lang[0] =  2;
-                        editor.putInt(conf.getLANG(),2);
-                        editor.apply();
-                        arr_lang_index[0] = R.array.app_lang_en;
-                        array = getResources().getStringArray(R.array.app_lang_en);
-                        break;
-                    case 2:
-                        lang[0] =  3;
-                        editor.putInt(conf.getLANG(),3);
-                        editor.apply();
-                        arr_lang_index[0] = R.array.app_lang_ar;
-                        array = getResources().getStringArray(R.array.app_lang_ar);
-                        break;
-                }
-            }
-        });
-        alertDialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if(lang[0]<=0){
-                    editor.putInt(conf.getLANG(),1);
-                    editor.apply();
-                    array = getResources().getStringArray(R.array.app_lang_ru);
-                }
-                searchBtn.setText(array[2]);
-                trainBtn.setText(array[11]);
-                String city = mSettings.getString("city","");
-
-                if(!city.equals("")){
-                    cityChanged(mapboxMap);
-                }
-                alert.dismiss();
-            }
-        });
-        alert = alertDialog.create();
-        alert.setCanceledOnTouchOutside(false);
-        alert.show();
-
-
-    }
 
 
 
@@ -399,7 +343,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     double lat=0,lng=0;
 
 
-    List<HumData> humDataList = new ArrayList<HumData>();
     @Override
     public void onLocationChanged(@NonNull Location location) {
              if(location!=null){
@@ -428,13 +371,14 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
 
-    public void getData(){
+    List<HumData> humDataList = new ArrayList<HumData>();
+    public void getData(MapboxMap mapboxMap){
         ProgressDialog dialog = new ProgressDialog(MainActivity.this);
         dialog.setMessage(array[1]);
         dialog.setCancelable(false);
         dialog.show();
         Request request = new Request.Builder()
-                .url(conf.getDomen()+ "getInitData?lat="+lat+"&lng="+lng+"/")
+                .url(conf.getDomen()+ "getInitData?city_id="+city_id)
                 .build();
         Call call = client.newCall(request);
         call.enqueue(new Callback() {
@@ -445,38 +389,34 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             public void onResponse(Response response) throws IOException {
                 try{
                     humPhotos = new JSONArray(response.body().string());
+                    for(int i=0;i<humPhotos.length();i++){
+                        try {
+                            JSONObject tmpHum = humPhotos.getJSONObject(i);
+                            HumData humData = new HumData();
+                            humData.setId(tmpHum.getInt("fullFaceFeatures_id"));
+                            humData.setDate(tmpHum.getString("inp_date"));
+                            humData.setPhotoName(tmpHum.getString("photoName"));
+                            humData.setLat(tmpHum.getDouble("lat"));
+                            humData.setLng(tmpHum.getDouble("lng"));
+                            humDataList.add(humData);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }catch (Exception e){e.printStackTrace();}
-            }
-        });
-        if(humPhotos!=null){
-            for(int i=0;i<humPhotos.length();i++){
-                try {
-                    JSONObject tmpHum = humPhotos.getJSONObject(i);
-                    HumData humData = new HumData();
-                    humData.setId(tmpHum.getInt("fullFaceFeatures_id"));
-                    humData.setDate(tmpHum.getString("inp_date"));
-                    humData.setPhotoName(tmpHum.getString("photoName"));
-                    humData.setLat(tmpHum.getDouble("lat"));
-                    humData.setLng(tmpHum.getDouble("lng"));
-                    humDataList.add(humData);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                if(isOnline()){
-                    downloadImages();
+                if(isOnline()&&humDataList!=null){
+                    downloadImages(mapboxMap);
                 }else{
                     Toast.makeText(MainActivity.this,array[35],Toast.LENGTH_LONG).show();
                 }
-
             }
-        }
+        });
+
         if (dialog.isShowing()) {
             dialog.dismiss();
         }
     }
-
-    public void downloadImages(){
+    public void downloadImages(MapboxMap mapboxMap){
         for(int i=0;i<humDataList.size();i++){
             Request request = new Request.Builder()
                     .url(conf.getDomen()+ "image?imgname="+humDataList.get(i).getPhotoName()+"_SMALL.jpg/")
@@ -485,24 +425,32 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
             int finalI = i;
             call.enqueue(new Callback() {
                 @Override
-                public void onFailure(Request request, IOException e) {}
+                public void onFailure(Request request, IOException e) {e.printStackTrace();}
 
                 @Override
-                public void onResponse(Response response) throws IOException {
+                public void onResponse(Response response){
                     try{
                         InputStream inputStream = response.body().byteStream();
                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                         Icon paellaIcon = IconFactory.getInstance(MainActivity.this).fromBitmap(bitmap);
                         try{
-                            m_map.addMarker(new MarkerOptions().setPosition(new LatLng(humDataList.get(finalI).getLat(), humDataList.get(finalI).getLng())).setTitle(humDataList.get(finalI).getDate()).setIcon(paellaIcon));
-                        }catch (Exception e){}
-
-                    }catch (Exception e){}
+                            LatLng latLng = new LatLng(humDataList.get(finalI).getLat(), humDataList.get(finalI).getLng());
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mapboxMap.addMarker(new MarkerOptions()
+                                            .position(latLng)
+                                            .title(humDataList.get(finalI).getDate())
+                                            .icon(paellaIcon));
+                                }
+                            });
+                        }catch (Exception e){e.printStackTrace();}
+                    }catch (Exception e){e.printStackTrace();}
                 }
             });
         }
-
     }
+
 
     class StatusOfBanner extends AsyncTask<Void,Void,Void>{
         String statusCode = "N";
@@ -553,5 +501,60 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+    public void showCountryAlert(){
+        AlohaDb alohaDb = new AlohaDb(MainActivity.this);
+        SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
+        alohaDb.iniDb(sqLiteDatabase);
+        List<Country> list = alohaDb.getAllCountry();
+
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
+        builderSingle.setIcon(R.drawable.location_icon);
+        builderSingle.setTitle(array[27]);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+        for(int i=0;i<list.size();i++){
+            arrayAdapter.add(list.get(i).getName());
+        }
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Region> regions = alohaDb.getRegions(which);
+                final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+                for(int i=0;i<regions.size();i++){
+                    arrayAdapterReg.add(regions.get(i).getName());
+                }
+
+
+                AlertDialog.Builder builderInnerRegion = new AlertDialog.Builder(MainActivity.this);
+                builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        List<City> cities = alohaDb.getCities(regions.get(i).getId());
+                        final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+                        for(int k=0;k<cities.size();k++){
+                            arrayCity.add(cities.get(k).getName());
+                        }
+
+                        AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(MainActivity.this);
+                        builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int c) {
+                                editor.putString("city",arrayCity.getItem(c));
+                                editor.putInt("city_id",cities.get(c).getId());
+                                editor.apply();
+                                city_id = cities.get(c).getId();
+                                dialog.dismiss();
+                                Toast.makeText(MainActivity.this,array[19],Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        builderInnerCity.show();
+                    }
+                });
+                builderInnerRegion.show();
+            }
+        });
+        builderSingle.show();
     }
 }

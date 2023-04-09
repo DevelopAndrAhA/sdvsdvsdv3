@@ -66,6 +66,7 @@
         <item>No data</item>
         <item>Bookmarks</item>
         <item>My photos</item>
+        <item>Deleted</item>
     </string-array>
 
     <string-array name="app_lang_ru">
@@ -113,6 +114,7 @@
         <item>Нет данных</item>
         <item>Заладки</item>
         <item>Мои фотографии</item>
+        <item>Удалено</item>
     </string-array>
     <string-array name="app_lang_ar">
         <item>يخفي</item>
@@ -159,6 +161,7 @@
         <item>لايوجد بيانات</item>
         <item>إشارات مرجعية</item>
         <item>صوري</item>
+        <item>إزالة</item>
     </string-array>
 
 
