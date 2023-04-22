@@ -2,8 +2,12 @@ package com.lesa_humdet;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -11,9 +15,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lesa_humdet.db.AlohaDb;
 import com.lesa_humdet.db.City;
@@ -24,11 +31,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 
 public class LaunchActivity extends AppCompatActivity {
+    Conf conf = new Conf();
+    SharedPreferences mSettings;
+    SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);
+        editor = mSettings.edit();
+        getDeviceId(editor,getApplicationContext());
         setContentView(R.layout.activity_launch);
         ImageView imageView = findViewById(R.id.imageView);
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.iconhumdet);
@@ -61,15 +77,68 @@ public class LaunchActivity extends AppCompatActivity {
         }
 
 
-
-
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         finish();
     }
 
+    public void showCountryAlert(){
+        AlohaDb alohaDb = new AlohaDb(LaunchActivity.this);
+        SQLiteDatabase sqLiteDatabase = alohaDb.getReadableDatabase();
+        alohaDb.iniDb(sqLiteDatabase);
+        List<Country> list = alohaDb.getAllCountry();
+
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(LaunchActivity.this);
+        builderSingle.setIcon(R.drawable.location_icon);
+        builderSingle.setTitle("Select coountry");
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LaunchActivity.this, android.R.layout.select_dialog_singlechoice);
+        for(int i=0;i<list.size();i++){
+            arrayAdapter.add(list.get(i).getName());
+        }
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Region> regions = alohaDb.getRegions(which);
+                final ArrayAdapter<String> arrayAdapterReg = new ArrayAdapter<String>(LaunchActivity.this, android.R.layout.select_dialog_singlechoice);
+                for(int i=0;i<regions.size();i++){
+                    arrayAdapterReg.add(regions.get(i).getName());
+                }
+
+
+                AlertDialog.Builder builderInnerRegion = new AlertDialog.Builder(LaunchActivity.this);
+                builderInnerRegion.setAdapter(arrayAdapterReg, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        List<City> cities = alohaDb.getCities(regions.get(i).getId());
+                        final ArrayAdapter<String> arrayCity = new ArrayAdapter<String>(LaunchActivity.this, android.R.layout.select_dialog_singlechoice);
+                        for(int k=0;k<cities.size();k++){
+                            arrayCity.add(cities.get(k).getName());
+                        }
+
+                        AlertDialog.Builder builderInnerCity = new AlertDialog.Builder(LaunchActivity.this);
+                        builderInnerCity.setAdapter(arrayCity, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int c) {
+                                editor.putString("city",arrayCity.getItem(c));
+                                editor.putInt("city_id",cities.get(c).getId());
+                                editor.apply();
+                                dialog.dismiss();
+                                Toast.makeText(LaunchActivity.this,"saved",Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        builderInnerCity.show();
+                    }
+                });
+                builderInnerRegion.show();
+            }
+        });
+        builderSingle.show();
+    }
     class DbInittask extends AsyncTask<Void,Void,Void>{
         AlohaDb alohaDb = new AlohaDb(LaunchActivity.this);
         SQLiteDatabase sqLiteDatabase = alohaDb.getWritableDatabase();
@@ -100,6 +169,7 @@ public class LaunchActivity extends AppCompatActivity {
             if (dialog.isShowing()) {
                 dialog.dismiss();
             }
+            showCountryAlert();
         }
     }
     public void insert(String type, AlohaDb alohaDb, AssetManager assetManager){
@@ -153,6 +223,14 @@ public class LaunchActivity extends AppCompatActivity {
             } catch (IOException e) {}
         }
 
+    }
+    public void getDeviceId(SharedPreferences.Editor editor,Context context) {
+
+        String deviceId = Settings.Secure.getString(
+                context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        editor.putString("deviceId",deviceId);
+        editor.apply();
     }
 
 }

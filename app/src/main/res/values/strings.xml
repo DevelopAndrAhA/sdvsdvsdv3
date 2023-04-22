@@ -28,7 +28,7 @@
         <item>Select image</item>
         <item>Average percent similarity</item>
         <item>Date search</item>
-        <item>The face was not found in the photo, repeat again select the photo</item>
+        <item>The face was not detected in the photo or the size of the photo is too large, try choosing another photo</item>
         <item>Search results</item>
         <item>Similarity</item>
         <item>Photo date</item>
@@ -76,7 +76,7 @@
         <item>Выбрать фото</item>
         <item>Средний процент сходства</item>
         <item>Поиск на дату</item>
-        <item>На фото лицо не обнаружено, повторите еще раз выбрать фото</item>
+        <item>На фото лицо не обнаружено либо размер фотографии слишком большой,попробуйте выбрать другое фото</item>
         <item>Результат поиска</item>
         <item>Сходство</item>
         <item>Дата съемки</item>
@@ -123,7 +123,7 @@
         <item>اختر صورة</item>
         <item>متوسط ​​نسبة التشابه</item>
         <item>البحث عن التاريخ</item>
-        <item>لم يتم العثور على الوجه في الصورة ، كرر مرة أخرى حدد الصورة</item>
+        <item>لم يتم اكتشاف الوجه في الصورة أو أن حجم الصورة كبير جدًا ، حاول اختيار صورة أخرى</item>
         <item>نتائج البحث</item>
         <item>تشابه</item>
         <item>تاريخ الصورة</item>

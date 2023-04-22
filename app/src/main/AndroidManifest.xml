@@ -67,6 +67,7 @@
             android:name=".MyService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="dataSync"
             android:theme="@style/Theme.AppCompat" />
     </application>
     <uses-feature android:name="android.hardware.camera.autofocus" />

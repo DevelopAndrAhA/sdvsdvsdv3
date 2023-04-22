@@ -159,33 +159,41 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
         per.getMyApplicationPermissions();
         try{
             jsonArray = new JSONArray(getIntent().getStringExtra("jsonArray"));
-            for(int i=0;i<jsonArray.length();i++){
-                String[] urlMas3 = new String[3];
-                JSONObject [] jsonObject = new JSONObject[3];
-                try{
-                    urlMas3[0] = jsonArray.getJSONObject(i).getString("photoName");
-                    jsonObject[0] = jsonArray.getJSONObject(i);
-                }catch (Exception e){}
-                try{
-                    urlMas3[1] = jsonArray.getJSONObject(i+1).getString("photoName");
-                    jsonObject[1] = jsonArray.getJSONObject(i+1);
-                    i = i+1;
-                }catch (Exception e){}
-                try{
-                    urlMas3[2] = jsonArray.getJSONObject(i+1).getString("photoName");
-                    jsonObject[2] = jsonArray.getJSONObject(i+1);
-                    i = i+1;
-                }catch (Exception e){}
-                if(list==null || list.size()==0) textView.setVisibility(View.VISIBLE);
-                CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects,jsonArray.toString());
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        adapter.alertDialogBuilder();
-                    }
-                });
-                listView.setAdapter(adapter);
-                listView.setClickable(false);
+        }catch (Exception e){}
+        try{
+            if(jsonArray!=null){
+                for(int i=0;i<jsonArray.length();i++){
+                    String[] urlMas3 = new String[3];
+                    JSONObject [] jsonObject = new JSONObject[3];
+                    try{
+                        urlMas3[0] = jsonArray.getJSONObject(i).getString("photoName");
+                        jsonObject[0] = jsonArray.getJSONObject(i);
+                    }catch (Exception e){}
+                    try{
+                        urlMas3[1] = jsonArray.getJSONObject(i+1).getString("photoName");
+                        jsonObject[1] = jsonArray.getJSONObject(i+1);
+                        i = i+1;
+                    }catch (Exception e){}
+                    try{
+                        urlMas3[2] = jsonArray.getJSONObject(i+1).getString("photoName");
+                        jsonObject[2] = jsonArray.getJSONObject(i+1);
+                        i = i+1;
+                    }catch (Exception e){}
+
+                    list.add(urlMas3);
+                    jsonObjects.add(jsonObject);
+
+                    CustomArrayAdapter adapter = new CustomArrayAdapter(ResultSearchActivity.this, list,jsonObjects,jsonArray.toString());
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            adapter.alertDialogBuilder();
+                        }
+                    });
+                    listView.setAdapter(adapter);
+                    listView.setClickable(false);
+                }
             }
+            if(list==null || list.size()==0 || jsonArray==null) textView.setVisibility(View.VISIBLE);
         }catch (Exception e){}
 
 
@@ -199,8 +207,10 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(Settings.canDrawOverlays(this)){
-                Intent intentService = new Intent(ResultSearchActivity.this,MyService.class);
-                startService(intentService);
+                try{
+                    Intent intentService = new Intent(ResultSearchActivity.this,MyService.class);
+                    startService(intentService);
+                }catch (Exception e){}
             }else{
                 Toast.makeText(ResultSearchActivity.this,array[30],Toast.LENGTH_LONG).show();
             }
@@ -521,5 +531,4 @@ public class ResultSearchActivity extends AppCompatActivity implements SwipeRefr
         });
         builderSingle.show();
     }
-
 }

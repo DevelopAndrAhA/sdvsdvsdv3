@@ -123,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
 
 
         per.getMyApplicationPermissions();
-        getDeviceId(editor,getApplicationContext());
         m_mapView.onCreate(savedInstanceState);
         m_mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -272,7 +271,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e("onStart","onStart");
         if (m_mapView != null) {
             m_mapView.onStart();
             cityChanged(m_map);
@@ -282,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     public void onStop() {
         super.onStop();
-        Log.e("onStop","onStop");
         if (m_mapView != null) {
             m_mapView.onStop();
         }
@@ -291,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e("onResume","onResume");
         if (m_mapView != null) {
             m_mapView.onResume();
         }
@@ -300,7 +296,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e("onPause","onPause");
         if (m_mapView != null) {
             m_mapView.onPause();
         }
@@ -309,7 +304,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.e("onSaveInstanceState","onSaveInstanceState");
         if (m_mapView != null) {
             m_mapView.onSaveInstanceState(outState);
         }
@@ -318,7 +312,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        Log.e("onLowMemory","onLowMemory");
         if (m_mapView != null) {
             m_mapView.onLowMemory();
         }
@@ -327,7 +320,6 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("onDestroy","onDestroy");
         if (m_mapView != null) {
             m_mapView.onDestroy();
         }
@@ -418,11 +410,11 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     }
     public void downloadImages(MapboxMap mapboxMap){
         for(int i=0;i<humDataList.size();i++){
-            Request request = new Request.Builder()
+            int finalI = i;
+            /*Request request = new Request.Builder()
                     .url(conf.getDomen()+ "image?imgname="+humDataList.get(i).getPhotoName()+"_SMALL.jpg/")
                     .build();
             Call call = client.newCall(request);
-            int finalI = i;
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Request request, IOException e) {e.printStackTrace();}
@@ -447,7 +439,18 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
                         }catch (Exception e){e.printStackTrace();}
                     }catch (Exception e){e.printStackTrace();}
                 }
+            });*/
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    LatLng latLng = new LatLng(humDataList.get(finalI).getLat(), humDataList.get(finalI).getLng());
+                    mapboxMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .title(humDataList.get(finalI).getDate()));
+                    //.icon(paellaIcon));
+                }
             });
+
         }
     }
 
@@ -488,14 +491,7 @@ public class MainActivity extends AppCompatActivity implements  MapboxMap.OnMark
     }
 
 
-    public void getDeviceId(SharedPreferences.Editor editor,Context context) {
 
-        String deviceId = Settings.Secure.getString(
-                context.getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        editor.putString("deviceId",deviceId);
-        editor.apply();
-    }
     public boolean isOnline() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);

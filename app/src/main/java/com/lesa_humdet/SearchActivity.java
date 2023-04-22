@@ -1,6 +1,8 @@
 package com.lesa_humdet;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.exifinterface.media.ExifInterface;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -13,19 +15,27 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.icu.util.Calendar;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.TranslateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -40,10 +50,9 @@ import com.lesa_humdet.db.Country;
 import com.lesa_humdet.db.Region;
 import com.lesa_humdet.tflite.SimilarityClassifier;
 import com.lesa_humdet.tflite.TFLiteObjectDetectionAPIModel;
+import com.lesa_humdet.util.LineView;
 import com.squareup.okhttp.Call;
-import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -286,11 +295,41 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                 bitmap = BitmapFactory.decodeStream(input, null, bOptions);
                 File fileToSend = new File(getRealPathFromUri(uriToSend));
                 ImageView imageView = findViewById(R.id.imageView);
+
+                // Check orientation of the image
+                ExifInterface exif = new ExifInterface(fileToSend.getAbsolutePath());
+                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                int degrees = 0;
+                switch (orientation) {
+                    case ExifInterface.ORIENTATION_ROTATE_90:
+                        degrees = 90;
+                        break;
+                    case ExifInterface.ORIENTATION_ROTATE_180:
+                        degrees = 180;
+                        break;
+                    case ExifInterface.ORIENTATION_ROTATE_270:
+                        degrees = 270;
+                        break;
+                }
+
+                // Set the image bitmap to ImageView and rotate it if necessary
                 imageView.setImageBitmap(bitmap);
-                faceDatector(bitmap,fileToSend.getName());
-            } catch (FileNotFoundException e) {e.printStackTrace();}
+                if (degrees != 0) {
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(degrees);
+                    Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                    imageView.setImageBitmap(rotatedBitmap);
+                }
+
+                faceDatector(bitmap, fileToSend.getName());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+
     Bitmap faceBmp112_112=null;
     String masToSend = "";
     public void faceDetect(Bitmap bitmap,List<Face> faces,String imageName){
@@ -315,6 +354,10 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             buttonSearch.setVisibility(View.INVISIBLE);
         }
     }
+
+
+
+
 
     Uri uriToSend=null;
     private String getRealPathFromUri(Uri contentUri){
@@ -389,6 +432,7 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                             dialog.dismiss();
                         }
                         if(jsonArray!=null){
+                            Log.e("jsonArray",jsonArray.toString());
                             Intent intent = new Intent(SearchActivity.this,ResultSearchActivity.class);
                             intent.putExtra("jsonArray",jsonArray.toString());
                             startActivity(intent);

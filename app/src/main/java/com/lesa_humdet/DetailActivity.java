@@ -57,9 +57,9 @@ public class DetailActivity extends AppCompatActivity {
     private ImageView personImg;
     private TextView photoDate2;
     private int position;
-    //private JSONArray jsonArray;
-    //private String jsonObjectsStr;
-    //private TextView percent;
+    private JSONArray jsonArray;
+    private String jsonObjectsStr;
+    private TextView percent;
     long fullFaceFeatures_id = 0;
     long faceFeaturesId = 0;
 
@@ -71,9 +71,8 @@ public class DetailActivity extends AppCompatActivity {
             position = getIntent().getIntExtra("position",0);
             fullFaceFeatures_id = jsonObject.getLong("fullFaceFeatures_id");
             faceFeaturesId = jsonObject.getLong("facefeatures_id");
-            //jsonObjectsStr = getIntent().getStringExtra("allJsonObject");
-            //Log.e("jsonObjectsStr",jsonObjectsStr);
-            //jsonArray = new JSONArray(jsonObjectsStr);
+            jsonObjectsStr = getIntent().getStringExtra("allJsonObject");
+            jsonArray = new JSONArray(jsonObjectsStr);
         }catch (Exception e){e.printStackTrace();}
         Mapbox.getInstance(this, "pk.eyJ1IjoiYWx0dWhhIiwiYSI6ImNsNHFya3dqdzBya3kzZmxudTE0b3o4emgifQ._IFNc_dmOF_mQPrV6QX4ZA");
         mSettings = getSharedPreferences(conf.getShared_pref_name(), Context.MODE_PRIVATE);

@@ -1,6 +1,9 @@
 package com.lesa_humdet;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -102,6 +105,7 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -178,6 +182,7 @@ public class MyService extends  Service implements LifecycleOwner {
     @Override
     public void onCreate() {
         super.onCreate();
+
         mSettings = getSharedPreferences(new Conf().getShared_pref_name(), Context.MODE_PRIVATE);
         editor = mSettings.edit();
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -307,15 +312,47 @@ public class MyService extends  Service implements LifecycleOwner {
     }
 
 
+    private static final int NOTIFICATION_ID = 1; // уникальный идентификатор уведомления
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // создаем уведомление для запуска службы в переднем плане
+        Notification notification = createNotification();
+        // запускаем службу в переднем плане
+        startForeground(NOTIFICATION_ID, notification);
 
+        // выполнение фактической работы службы
+        // ...
+
+        // остановка службы, если она уже не нужна
+        stopForeground(true); // передаем флаг, чтобы удалить уведомление
+        stopSelf(); // остановка самой службы
         if(cameraId==null){
             layout.setVisibility(View.GONE);
         }
         return START_STICKY;
     }
+    private Notification createNotification() {
+        // создание уведомления с помощью NotificationCompat.Builder
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default")
+                .setContentTitle("My Foreground Service")
+                .setContentText("Service is running")
+                .setSmallIcon(R.drawable.iconhumdet_small)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
 
+        // создаем канал уведомлений, если мы работаем на Android 8.0 и выше
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "default",
+                    "My Foreground Service",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("My Foreground Service");
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
+        }
+
+        return builder.build();
+    }
     private void openCamera(String cameraId) {
         manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
@@ -547,7 +584,7 @@ public class MyService extends  Service implements LifecycleOwner {
         cv.drawBitmap(rgbFrameBitmap, transform, null);
         final Canvas cvFace = new Canvas(faceBmp);
         for (Face face : faces) {
-            final RectF boundingBox = new RectF(face.getBoundingBox());
+            RectF boundingBox = new RectF(face.getBoundingBox());
             final boolean goodConfidence = true;
             if (boundingBox != null && goodConfidence) {
                 cropToFrameTransform.mapRect(boundingBox);
@@ -561,7 +598,6 @@ public class MyService extends  Service implements LifecycleOwner {
                 matrix.postScale(sx, sy);
                 cvFace.drawBitmap(portraitBmp, matrix, null);
                 canvas.drawRect(faceBB, paint);
-                String label = "";
                 float confidence = -1f;
                 Object extra = null;
                 Bitmap crop = null;
@@ -579,17 +615,15 @@ public class MyService extends  Service implements LifecycleOwner {
                         SimilarityClassifier.Recognition result = resultsAux.get(0);
                         extra = result.getExtra();
                         float conf = result.getDistance();
-                        if (conf < 1.0f) {
+                        if (conf == 3.4028235E38f) {
                             confidence = conf;
-                            label = result.getTitle();
+                            result = new SimilarityClassifier.Recognition(startTime+"", conf+"", confidence, boundingBox,"");
+                            result.setExtra(extra);
+                            result.setCrop(crop);
+                            result.setLocation(boundingBox);
+                            mappedRecognitions.add(result);
                         }
                     }
-                    final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition(startTime+"", label, confidence, boundingBox,"");
-                    //result.setColor(color);
-                    result.setExtra(extra);
-                    result.setCrop(crop);
-                    result.setLocation(boundingBox);
-                    mappedRecognitions.add(result);
                 }
             }
         }
@@ -677,12 +711,13 @@ public class MyService extends  Service implements LifecycleOwner {
     }
 
     private void updateResults(long currTimestamp, final List<SimilarityClassifier.Recognition> mappedRecognitions, Bitmap crop) {
+
         tracker.trackResults(mappedRecognitions, currTimestamp);
         trackingOverlay.postInvalidate();
         computingDetection = false;
         if (!mappedRecognitions.isEmpty()) {
             SimilarityClassifier.Recognition rec = mappedRecognitions.get(0);
-            if (rec.getExtra() != null && (rec.getTitle() == null || rec.getTitle().isEmpty())) {
+            if (rec.getExtra() != null && !(rec.getTitle() == null || rec.getTitle().isEmpty())) {
                 detector.register(currTimestamp + "", rec);
                 String dateStr = new Date().toLocaleString().split(" ")[0];
                 if (!rec.getDate().equals(dateStr) && rec.getDate().isEmpty()) {
