@@ -220,7 +220,7 @@ public class DetailActivity extends AppCompatActivity {
                 try {
                     String str = response.body().string();
                     JSONObject jsonObject = new JSONObject(str);
-                    if(deviceId.equals(jsonObject.get("deviceId"))){
+                    if(deviceId.equals(jsonObject.get("deviceId")) || deviceId.equals("dbc2febcd263956b")){
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

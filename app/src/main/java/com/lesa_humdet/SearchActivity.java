@@ -432,7 +432,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                             dialog.dismiss();
                         }
                         if(jsonArray!=null){
-                            Log.e("jsonArray",jsonArray.toString());
                             Intent intent = new Intent(SearchActivity.this,ResultSearchActivity.class);
                             intent.putExtra("jsonArray",jsonArray.toString());
                             startActivity(intent);
@@ -499,7 +498,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                                 city_id = cities.get(c).getId();
                                 cityText.setText(array[33]+" : "+cities.get(c).getName());
                                 dialog.dismiss();
-                                Toast.makeText(SearchActivity.this,array[19],Toast.LENGTH_LONG).show();
                             }
                         });
                         builderInnerCity.show();

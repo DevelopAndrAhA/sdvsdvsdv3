@@ -115,8 +115,8 @@ public class NeuroTrainingActivity extends AppCompatActivity implements Location
             public void onClick(View view) {
 
                 SaveNewFace saveNewFace = new SaveNewFace(NeuroTrainingActivity.this);
-                saveNewFace.setLat(0);
-                saveNewFace.setLng(0);
+                saveNewFace.setLat(lat);
+                saveNewFace.setLng(lng);
                 saveNewFace.setUsername("username");
                 final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp112_112, true);
                 SimilarityClassifier.Recognition result = resultsAux.get(0);
